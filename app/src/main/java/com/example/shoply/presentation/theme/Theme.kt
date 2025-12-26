@@ -1,6 +1,5 @@
-package com.example.shoply.ui.theme
+package com.example.shoply.presentation.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

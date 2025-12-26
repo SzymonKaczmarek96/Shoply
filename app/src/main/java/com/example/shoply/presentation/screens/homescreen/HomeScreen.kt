@@ -11,8 +11,14 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,9 +32,31 @@ import androidx.compose.ui.unit.sp
 import com.example.shoply.presentation.utils.UiDIm
 import com.myapp.shoply.R
 
-// That is require scaffold for this implementation?
+//floatig action button and bottom bar are empty for now
 @Composable
 fun HomeScreen(
+    modifier: Modifier
+) {
+    Scaffold(
+        topBar = {
+            NavTopBar(
+                modifier = Modifier,
+                title = "Shoply",
+                onClickBack = {},
+                onClickSideMenu = {}
+            )
+        },
+        content = { paddingValues ->
+            HomeContentScreen(modifier = modifier.padding(paddingValues))
+        },
+        floatingActionButton = {},
+        bottomBar = { }
+    )
+}
+
+
+@Composable
+private fun HomeContentScreen(
     modifier: Modifier
 ) {
     Box(
@@ -98,8 +126,8 @@ fun HomeScreen(
             LazyColumn(
                 modifier = Modifier
             ) {
-                items(5) { item ->
-                    CardListScreen(modifier, item, "Grocery Shopping")
+                items(5) {
+                    CardListScreen(modifier, "Grocery Shopping")
 
                 }
             }
@@ -109,7 +137,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun CardListScreen(
+private fun CardListScreen(
     modifier: Modifier,
     title: String,
 ) {
@@ -152,12 +180,64 @@ fun CardListScreen(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text("3/12 items purchased")
-//            AsyncImage()
+//            AsyncImage() TODO
         }
     }
-
 }
 
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun NavTopBar(
+    modifier: Modifier,
+    title: String,
+    onClickBack: () -> Unit = {},
+    onClickSideMenu: () -> Unit = {},
+) {
+    CenterAlignedTopAppBar(
+        title = {
+            Text(
+                text = title,
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = { /* TODO */ }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back Icon",
+                    tint = Color.Black,
+                )
+            }
+        },
+        modifier = modifier,
+        actions = {
+            IconButton(
+                onClick = { /* TODO */ }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "Side Menu Icon",
+                    tint = Color.Black,
+                )
+            }
+        },
+    )
+}
+
+
+@Preview
+@Composable
+fun NavTopBarPreview() {
+    NavTopBar(
+        modifier = Modifier,
+        title = "Shoply",
+        onClickBack = {},
+        onClickSideMenu = {}
+    )
+}
 
 @Preview
 @Composable
@@ -167,6 +247,12 @@ fun HomeScreenPreview() {
 
 @Preview
 @Composable
+fun HomeContentScreenPreview() {
+    HomeContentScreen(modifier = Modifier)
+}
+
+@Preview
+@Composable
 fun CardListScreenPreview() {
-    CardListScreen(modifier = Modifier, 1, "Grocery Shopping")
+    CardListScreen(modifier = Modifier, "Grocery Shopping")
 }

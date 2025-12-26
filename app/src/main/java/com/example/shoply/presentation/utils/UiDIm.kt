@@ -1,4 +1,4 @@
-package com.example.shoply.ui.utils
+package com.example.shoply.presentation.utils
 
 import androidx.compose.ui.unit.dp
 

@@ -5,14 +5,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.ui.Modifier
-import com.example.shoply.ui.screens.loginscreen.LoginScreen
+import com.example.shoply.presentation.screens.homescreen.HomeScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            LoginScreen(modifier = Modifier)
+            HomeScreen(modifier = Modifier)
         }
     }
 }

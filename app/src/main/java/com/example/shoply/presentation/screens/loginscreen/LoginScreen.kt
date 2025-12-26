@@ -1,4 +1,4 @@
-package com.example.shoply.ui.screens.loginscreen
+package com.example.shoply.presentation.screens.loginscreen
 
 
 import androidx.compose.foundation.BorderStroke
@@ -32,7 +32,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.shoply.ui.utils.UiDIm
+import com.example.shoply.presentation.utils.UiDIm
 import com.myapp.shoply.R
 
 @OptIn(ExperimentalFoundationApi::class)
