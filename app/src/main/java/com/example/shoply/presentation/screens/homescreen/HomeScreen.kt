@@ -1,6 +1,7 @@
 package com.example.shoply.presentation.screens.homescreen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,47 +10,98 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.example.shoply.domain.model.ProductList
+import com.example.shoply.domain.model.Role
+import com.example.shoply.domain.model.User
+import com.example.shoply.domain.usecase.GetProductListUseCase
+import com.example.shoply.presentation.components.ShoplyFab
+import com.example.shoply.presentation.components.ShoplyTopBar
 import com.example.shoply.presentation.utils.UiDIm
 import com.myapp.shoply.R
 
-//floatig action button and bottom bar are empty for now
 @Composable
 fun HomeScreen(
-    modifier: Modifier
+    homeScreenViewModel: HomeScreenViewModel,
+    onClickBack: () -> Unit,
+    onClickSideMenu: () -> Unit,
+    onFabClick: () -> Unit
+) {
+    RootView(
+        uiState = homeScreenViewModel.state.collectAsState().value,
+        onClickBack = onClickBack,
+        onClickSideMenu = onClickSideMenu,
+        onFabClick = onFabClick
+    )
+}
+
+@Composable
+private fun RootView(
+    uiState: HomeScreenViewModel.State,
+    onClickBack: () -> Unit,
+    onClickSideMenu: () -> Unit,
+    onFabClick: () -> Unit
+) {
+    HomeScreen(
+        uiState = uiState,
+        modifier = Modifier,
+        onClickBack = onClickBack,
+        onClickSideMenu = onClickSideMenu,
+        onFabClick = onFabClick
+    )
+}
+
+@Composable
+private fun HomeScreen(
+    uiState: HomeScreenViewModel.State,
+    modifier: Modifier,
+    onClickBack: () -> Unit,
+    onClickSideMenu: () -> Unit,
+    onFabClick: () -> Unit
 ) {
     Scaffold(
+        modifier = modifier,
         topBar = {
-            NavTopBar(
+            ShoplyTopBar(
                 modifier = Modifier,
-                title = "Shoply",
-                onClickBack = {},
-                onClickSideMenu = {}
+                title = stringResource(R.string.app_name),
+                onClickBack = onClickBack,
+                onClickSideMenu = onClickSideMenu
             )
         },
         content = { paddingValues ->
-            HomeContentScreen(modifier = modifier.padding(paddingValues))
+            HomeContentScreen(
+                modifier = Modifier.padding(paddingValues),
+                uiState = uiState
+            )
         },
-        floatingActionButton = {},
+        floatingActionButton = {
+            ShoplyFab(modifier = Modifier, onFabClick = onFabClick)
+        },
+        floatingActionButtonPosition = FabPosition.Center,
         bottomBar = { }
     )
 }
@@ -57,30 +109,20 @@ fun HomeScreen(
 
 @Composable
 private fun HomeContentScreen(
-    modifier: Modifier
+    modifier: Modifier,
+    uiState: HomeScreenViewModel.State
 ) {
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(color = Color.White)
+
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
 
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(UiDIm.PADDING_MEDIUM),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Home Screen", fontSize = 28.sp, fontWeight = FontWeight.SemiBold,
-                    color = Color(0xff374151)
-                )
-            }
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -108,7 +150,6 @@ private fun HomeContentScreen(
 
                         )
                     }
-
                     IconButton(
                         onClick = {}
                     ) {
@@ -122,16 +163,18 @@ private fun HomeContentScreen(
                     }
                 }
             }
-
             LazyColumn(
-                modifier = Modifier
+                modifier = Modifier,
             ) {
-                items(5) {
-                    CardListScreen(modifier, "Grocery Shopping")
+                items(uiState.products ?: emptyList()) { product ->
+                    CardListScreen(
+                        modifier = Modifier,
+                        productList = product,
+                    )
 
                 }
-            }
 
+            }
         }
     }
 }
@@ -139,7 +182,7 @@ private fun HomeContentScreen(
 @Composable
 private fun CardListScreen(
     modifier: Modifier,
-    title: String,
+    productList: ProductList
 ) {
     Column(
         modifier = modifier
@@ -155,16 +198,24 @@ private fun CardListScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(productList.name, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
 
             Box(
                 modifier = Modifier
-                    .background(Color(0xff4ADE80), shape = RoundedCornerShape(30.dp))
+                    .background(
+                        if (productList.isComplete)
+                            Color(0xFFFABB02) else Color(0xff4ADE80),
+                        shape = RoundedCornerShape(30.dp)
+                    )
             ) {
                 Text(
                     modifier = Modifier
                         .padding(UiDIm.PADDING_SMALL),
-                    text = "Status",
+                    text = if (productList.isComplete) {
+                        "Active"
+                    } else {
+                        "Completed"
+                    },
                     color = Color.White,
                     fontSize = 12.sp,
                 )
@@ -174,85 +225,115 @@ private fun CardListScreen(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .offset(y = (-10).dp)
+                .offset(y = (-20).dp)
                 .padding(start = UiDIm.PADDING_LARGE),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("3/12 items purchased")
-//            AsyncImage() TODO
+            Text(
+                "${productList.quantityOfPurchasedProducts} " +
+                        "/ ${productList.quantityOfProducts}" +
+                        " items purchased",
+                color = Color.Gray
+            )
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .offset(y = (-10).dp)
+                .padding(start = UiDIm.PADDING_LARGE),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            MembersImageList(productList.members)
+            Text(
+                productList.members.size.toString() + " members",
+                modifier = Modifier
+                    .padding(start = UiDIm.PADDING_SMALL),
+                fontSize = 12.sp,
+                color = Color.Gray
+            )
         }
     }
 }
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun NavTopBar(
-    modifier: Modifier,
-    title: String,
-    onClickBack: () -> Unit = {},
-    onClickSideMenu: () -> Unit = {},
+private fun MembersImageList(
+    users: List<User>
 ) {
-    CenterAlignedTopAppBar(
-        title = {
-            Text(
-                text = title,
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
-        },
-        navigationIcon = {
-            IconButton(onClick = { /* TODO */ }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back Icon",
-                    tint = Color.Black,
-                )
-            }
-        },
-        modifier = modifier,
-        actions = {
-            IconButton(
-                onClick = { /* TODO */ }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "Side Menu Icon",
-                    tint = Color.Black,
-                )
-            }
-        },
-    )
-}
-
-
-@Preview
-@Composable
-fun NavTopBarPreview() {
-    NavTopBar(
+    Row(
         modifier = Modifier,
-        title = "Shoply",
-        onClickBack = {},
-        onClickSideMenu = {}
-    )
+    ) {
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy((-12).dp)
+        ) {
+            items(users) { user ->
+                AsyncImage(
+                    model = user.profilePictureUrl,
+                    contentDescription = user.name,
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .border(2.dp, Color.White, CircleShape)
+                )
+            }
+        }
+    }
 }
 
 @Preview
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen(modifier = Modifier)
+    HomeScreen(
+        modifier = Modifier,
+        uiState = HomeScreenViewModel.State(
+            products = GetProductListUseCase().productList
+        ),
+        onClickBack = {},
+        onClickSideMenu = {},
+        onFabClick = {},
+    )
 }
 
 @Preview
 @Composable
 fun HomeContentScreenPreview() {
-    HomeContentScreen(modifier = Modifier)
+    HomeContentScreen(
+        modifier = Modifier,
+        uiState = HomeScreenViewModel.State(
+            products = GetProductListUseCase().productList
+        )
+    )
 }
 
 @Preview
 @Composable
 fun CardListScreenPreview() {
-    CardListScreen(modifier = Modifier, "Grocery Shopping")
+    CardListScreen(
+        modifier = Modifier,
+        productList = GetProductListUseCase().productList.first(),
+    )
+}
+
+@Preview
+@Composable
+fun MembersImageListPreview() {
+    MembersImageList(
+        users = listOf(
+            User(
+                name = "Alice Johnson",
+                email = "123@gmail.com",
+                role = Role.CREATOR,
+            ), User(
+                name = "Alice Woman",
+                email = "123@gmail.com",
+                role = Role.MEMBER,
+            ),
+            User(
+                name = "Alice Man",
+                email = "123@gmail.com",
+                role = Role.MEMBER,
+            )
+        )
+    )
 }

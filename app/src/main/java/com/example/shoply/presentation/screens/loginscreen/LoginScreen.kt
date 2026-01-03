@@ -37,7 +37,13 @@ import com.myapp.shoply.R
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LoginScreen(modifier: Modifier) {
+fun LoginScreen(
+    modifier: Modifier,
+    onLoginClick: () -> Unit,
+    onCreateAccountClick: () -> Unit,
+    onGoogleLoginClick: () -> Unit,
+    onAppleLoginClick: () -> Unit
+) {
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -117,7 +123,7 @@ fun LoginScreen(modifier: Modifier) {
                     .fillMaxWidth()
                     .padding(top = UiDIm.PADDING_LARGE)
                     .height(50.dp),
-                onClick = {},
+                onClick = onLoginClick,
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonColors(
                     containerColor = Color(0xffFF0080),
@@ -134,7 +140,7 @@ fun LoginScreen(modifier: Modifier) {
                     .fillMaxWidth()
                     .padding(top = UiDIm.PADDING_LARGE)
                     .height(50.dp),
-                onClick = {},
+                onClick = onCreateAccountClick,
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonColors(
                     containerColor = Color(0xffFFFFFF),
@@ -162,6 +168,7 @@ fun LoginScreen(modifier: Modifier) {
                         .padding(top = UiDIm.PADDING_LARGE)
                         .padding(end = UiDIm.PADDING_SMALL)
                         .height(50.dp),
+                    onClick = onGoogleLoginClick,
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonColors(
                         containerColor = Color(0xff3B82F6),
@@ -170,7 +177,6 @@ fun LoginScreen(modifier: Modifier) {
                         disabledContainerColor = Color(0xffFFFFFF)
                     ),
                     border = BorderStroke(1.dp, Color(0xffBDBDBD)),
-                    onClick = {},
                 ) {
 
                     Row(
@@ -205,7 +211,7 @@ fun LoginScreen(modifier: Modifier) {
                         .padding(top = UiDIm.PADDING_LARGE)
                         .padding(start = UiDIm.PADDING_SMALL)
                         .height(50.dp),
-                    onClick = {},
+                    onClick = onAppleLoginClick,
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonColors(
                         containerColor = Color(0xff1F2937),
@@ -239,5 +245,11 @@ fun LoginScreen(modifier: Modifier) {
 @Preview
 @Composable
 fun LoginScreenPreview() {
-    LoginScreen(modifier = Modifier)
+    LoginScreen(
+        modifier = Modifier,
+        onLoginClick = {},
+        onCreateAccountClick = {},
+        onGoogleLoginClick = {},
+        onAppleLoginClick = {}
+    )
 }
