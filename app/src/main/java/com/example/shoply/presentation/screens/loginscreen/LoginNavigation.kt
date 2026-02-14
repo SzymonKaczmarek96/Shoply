@@ -1,6 +1,7 @@
 package com.example.shoply.presentation.screens.loginscreen
 
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import kotlinx.serialization.Serializable
@@ -22,5 +23,11 @@ fun NavGraphBuilder.loginScreen(
             onGoogleLoginClick = onGoogleLoginClick,
             onAppleLoginClick = onAppleLoginClick
         )
+    }
+}
+
+fun NavController.navigateToLoginScreen() {
+    navigate(LoginDestination) {
+        popUpTo(graph.id)
     }
 }

@@ -16,10 +16,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -28,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -38,74 +35,38 @@ import com.example.shoply.domain.model.ProductList
 import com.example.shoply.domain.model.Role
 import com.example.shoply.domain.model.User
 import com.example.shoply.domain.usecase.GetProductListUseCase
-import com.example.shoply.presentation.components.ShoplyFab
-import com.example.shoply.presentation.components.ShoplyTopBar
-import com.example.shoply.presentation.utils.UiDIm
+import com.example.shoply.presentation.utils.UiDim
 import com.myapp.shoply.R
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun HomeScreen(
-    homeScreenViewModel: HomeScreenViewModel,
-    onClickBack: () -> Unit,
-    onClickSideMenu: () -> Unit,
-    onFabClick: () -> Unit
+    viewModel: HomeScreenViewModel = koinViewModel()
 ) {
     RootView(
-        uiState = homeScreenViewModel.state.collectAsState().value,
-        onClickBack = onClickBack,
-        onClickSideMenu = onClickSideMenu,
-        onFabClick = onFabClick
+        uiState = viewModel.state.collectAsState().value,
     )
 }
 
 @Composable
 private fun RootView(
     uiState: HomeScreenViewModel.State,
-    onClickBack: () -> Unit,
-    onClickSideMenu: () -> Unit,
-    onFabClick: () -> Unit
 ) {
-    HomeScreen(
-        uiState = uiState,
-        modifier = Modifier,
-        onClickBack = onClickBack,
-        onClickSideMenu = onClickSideMenu,
-        onFabClick = onFabClick
+    HomeScreenLayout(
+        uiState = uiState
     )
 }
 
 @Composable
-private fun HomeScreen(
+private fun HomeScreenLayout(
     uiState: HomeScreenViewModel.State,
-    modifier: Modifier,
-    onClickBack: () -> Unit,
-    onClickSideMenu: () -> Unit,
-    onFabClick: () -> Unit
 ) {
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            ShoplyTopBar(
-                modifier = Modifier,
-                title = stringResource(R.string.app_name),
-                onClickBack = onClickBack,
-                onClickSideMenu = onClickSideMenu
-            )
-        },
-        content = { paddingValues ->
-            HomeContentScreen(
-                modifier = Modifier.padding(paddingValues),
-                uiState = uiState
-            )
-        },
-        floatingActionButton = {
-            ShoplyFab(modifier = Modifier, onFabClick = onFabClick)
-        },
-        floatingActionButtonPosition = FabPosition.Center,
-        bottomBar = { }
+    HomeContentScreen(
+        modifier = Modifier,
+        uiState = uiState
     )
-}
 
+}
 
 @Composable
 private fun HomeContentScreen(
@@ -126,7 +87,7 @@ private fun HomeContentScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(UiDIm.PADDING_MEDIUM),
+                    .padding(UiDim.PADDING_MEDIUM),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -187,14 +148,19 @@ private fun CardListScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(UiDIm.PADDING_LARGE)
+            .padding(UiDim.PADDING_LARGE)
             .background(color = Color(0xffF9FAFB))
     ) {
 
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(UiDIm.PADDING_LARGE),
+                .padding(
+                    bottom = UiDim.PADDING_SMALL,
+                    top = UiDim.PADDING_MEDIUM,
+                    start = UiDim.PADDING_LARGE,
+                    end = UiDim.PADDING_LARGE
+                ),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -210,7 +176,7 @@ private fun CardListScreen(
             ) {
                 Text(
                     modifier = Modifier
-                        .padding(UiDIm.PADDING_SMALL),
+                        .padding(UiDim.PADDING_SMALL),
                     text = if (productList.isComplete) {
                         "Active"
                     } else {
@@ -225,10 +191,7 @@ private fun CardListScreen(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .offset(y = (-20).dp)
-                .padding(start = UiDIm.PADDING_LARGE),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(start = UiDim.PADDING_LARGE, bottom = UiDim.PADDING_LARGE),
         ) {
             Text(
                 "${productList.quantityOfPurchasedProducts} " +
@@ -242,14 +205,14 @@ private fun CardListScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .offset(y = (-10).dp)
-                .padding(start = UiDIm.PADDING_LARGE),
+                .padding(start = UiDim.PADDING_LARGE),
             verticalAlignment = Alignment.CenterVertically
         ) {
             MembersImageList(productList.members)
             Text(
                 productList.members.size.toString() + " members",
                 modifier = Modifier
-                    .padding(start = UiDIm.PADDING_SMALL),
+                    .padding(start = UiDim.PADDING_SMALL),
                 fontSize = 12.sp,
                 color = Color.Gray
             )
@@ -284,14 +247,10 @@ private fun MembersImageList(
 @Preview
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen(
-        modifier = Modifier,
+    HomeScreenLayout(
         uiState = HomeScreenViewModel.State(
             products = GetProductListUseCase().productList
         ),
-        onClickBack = {},
-        onClickSideMenu = {},
-        onFabClick = {},
     )
 }
 

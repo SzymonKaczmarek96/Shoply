@@ -8,5 +8,17 @@ data class Product(
     val description: String,
     val icon: Int,
     val isPurchased: Boolean = false,
+    val isSelected: Boolean = false,
+    val category: ProductCategory = ProductCategory.OTHER
 ) {
+}
+
+enum class ProductCategory() {
+    GROCERY,
+    ELECTRONICS,
+    CLOTHING,
+    HOUSEHOLD,
+    TOYS,
+    SPORTS,
+    OTHER
 }

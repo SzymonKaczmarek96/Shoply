@@ -15,6 +15,7 @@ room = "2.6.1"
 coil = "2.7.0"
 navigation = "2.8.4"
 serialization = "1.5.1"
+material = "1.6.8"
 
 
 [libraries]
@@ -41,6 +42,7 @@ room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
 serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "material" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

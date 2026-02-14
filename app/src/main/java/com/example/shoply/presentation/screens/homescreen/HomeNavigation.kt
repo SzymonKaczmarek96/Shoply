@@ -8,14 +8,10 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object HomeDestination
 
-fun NavGraphBuilder.homeScreen() {
+fun NavGraphBuilder.homeScreen(
+) {
     composable<HomeDestination> {
-        HomeScreen(
-            homeScreenViewModel = HomeScreenViewModel(),
-            onClickBack = {},
-            onFabClick = {},
-            onClickSideMenu = {},
-        )
+        HomeScreen()
     }
 }
 
