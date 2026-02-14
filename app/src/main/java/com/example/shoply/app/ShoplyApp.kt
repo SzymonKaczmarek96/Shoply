@@ -5,12 +5,12 @@ import com.example.shoply.koin.appModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.GlobalContext
 
-class MyApplication : Application() {
+class ShoplyApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
         GlobalContext.startKoin {
-            androidContext(this@MyApplication)
+            androidContext(this@ShoplyApp)
             modules(appModule)
         }
     }

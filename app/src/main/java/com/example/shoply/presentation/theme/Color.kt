@@ -1,4 +1,4 @@
-package com.example.shoply.ui.theme
+package com.example.shoply.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 

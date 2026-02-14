@@ -1,4 +1,4 @@
-package com.example.shoply.ui.screens.loginscreen
+package com.example.shoply.presentation.screens.loginscreen
 
 
 import androidx.compose.foundation.BorderStroke
@@ -32,12 +32,18 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.shoply.ui.utils.UiDIm
+import com.example.shoply.presentation.utils.UiDim
 import com.myapp.shoply.R
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LoginScreen(modifier: Modifier) {
+fun LoginScreen(
+    modifier: Modifier,
+    onLoginClick: () -> Unit,
+    onCreateAccountClick: () -> Unit,
+    onGoogleLoginClick: () -> Unit,
+    onAppleLoginClick: () -> Unit
+) {
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -46,22 +52,13 @@ fun LoginScreen(modifier: Modifier) {
         Column(
             modifier = modifier
                 .fillMaxSize()
-                .padding(UiDIm.PADDING_LARGE),
+                .padding(UiDim.PADDING_LARGE),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
 
-            Row(
-                modifier = Modifier
-                    .padding(UiDIm.PADDING_MEDIUM),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Login Screen", fontWeight = FontWeight.SemiBold, fontSize = 18.sp,
-                    color = Color(0xff374151)
-                )
-            }
             Box(
                 modifier = Modifier
+                    .padding(top = UiDim.PADDING_LARGE)
                     .size(64.dp)
                     .clip(shape = CircleShape)
                     .background(color = Color(0xffFF0080))
@@ -71,7 +68,7 @@ fun LoginScreen(modifier: Modifier) {
                     contentDescription = "Login Icon",
                     tint = Color(0xffFfffff),
                     modifier = Modifier
-                        .padding(UiDIm.PADDING_LARGE)
+                        .padding(UiDim.PADDING_LARGE)
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -92,17 +89,19 @@ fun LoginScreen(modifier: Modifier) {
             Spacer(modifier = Modifier.height(32.dp))
 
             OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth(),
                 value = "",
                 maxLines = 1,
                 onValueChange = { it },
                 label = { Text(text = "Email") },
+
             )
 
             OutlinedTextField(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = UiDIm.PADDING_LARGE),
+                    .padding(top = UiDim.PADDING_LARGE),
                 value = "",
                 maxLines = 1,
                 onValueChange = { },
@@ -115,9 +114,9 @@ fun LoginScreen(modifier: Modifier) {
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = UiDIm.PADDING_LARGE)
+                    .padding(top = UiDim.PADDING_LARGE)
                     .height(50.dp),
-                onClick = {},
+                onClick = onLoginClick,
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonColors(
                     containerColor = Color(0xffFF0080),
@@ -132,9 +131,9 @@ fun LoginScreen(modifier: Modifier) {
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = UiDIm.PADDING_LARGE)
+                    .padding(top = UiDim.PADDING_LARGE)
                     .height(50.dp),
-                onClick = {},
+                onClick = onCreateAccountClick,
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonColors(
                     containerColor = Color(0xffFFFFFF),
@@ -152,16 +151,17 @@ fun LoginScreen(modifier: Modifier) {
 
             Row(
                 modifier = Modifier
-                    .padding(UiDIm.PADDING_SMALL)
+                    .padding(UiDim.PADDING_SMALL)
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
                 Button(
                     modifier = Modifier
                         .fillMaxWidth(0.5f)
-                        .padding(top = UiDIm.PADDING_LARGE)
-                        .padding(end = UiDIm.PADDING_SMALL)
+                        .padding(top = UiDim.PADDING_LARGE)
+                        .padding(end = UiDim.PADDING_SMALL)
                         .height(50.dp),
+                    onClick = onGoogleLoginClick,
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonColors(
                         containerColor = Color(0xff3B82F6),
@@ -170,12 +170,11 @@ fun LoginScreen(modifier: Modifier) {
                         disabledContainerColor = Color(0xffFFFFFF)
                     ),
                     border = BorderStroke(1.dp, Color(0xffBDBDBD)),
-                    onClick = {},
                 ) {
 
                     Row(
                         modifier = Modifier
-                            .padding(UiDIm.PADDING_SMALL)
+                            .padding(UiDim.PADDING_SMALL)
                             .height(48.dp),
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
@@ -186,7 +185,7 @@ fun LoginScreen(modifier: Modifier) {
                             contentDescription = "Google Icon",
                             tint = Color(0xffFFFFFF),
                             modifier = Modifier
-                                .padding(end = UiDIm.PADDING_SMALL)
+                                .padding(end = UiDim.PADDING_SMALL)
                         )
 
                         Text(
@@ -202,10 +201,10 @@ fun LoginScreen(modifier: Modifier) {
                 Button(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = UiDIm.PADDING_LARGE)
-                        .padding(start = UiDIm.PADDING_SMALL)
+                        .padding(top = UiDim.PADDING_LARGE)
+                        .padding(start = UiDim.PADDING_SMALL)
                         .height(50.dp),
-                    onClick = {},
+                    onClick = onAppleLoginClick,
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonColors(
                         containerColor = Color(0xff1F2937),
@@ -222,7 +221,7 @@ fun LoginScreen(modifier: Modifier) {
                         contentDescription = "Google Icon",
                         tint = Color(0xffFFFFFF),
                         modifier = Modifier
-                            .padding(end = UiDIm.PADDING_SMALL)
+                            .padding(end = UiDim.PADDING_SMALL)
                     )
 
 
@@ -239,5 +238,11 @@ fun LoginScreen(modifier: Modifier) {
 @Preview
 @Composable
 fun LoginScreenPreview() {
-    LoginScreen(modifier = Modifier)
+    LoginScreen(
+        modifier = Modifier,
+        onLoginClick = {},
+        onCreateAccountClick = {},
+        onGoogleLoginClick = {},
+        onAppleLoginClick = {}
+    )
 }

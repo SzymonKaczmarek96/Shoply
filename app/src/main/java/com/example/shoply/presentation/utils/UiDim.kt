@@ -1,8 +1,8 @@
-package com.example.shoply.ui.utils
+package com.example.shoply.presentation.utils
 
 import androidx.compose.ui.unit.dp
 
-object UiDIm {
+object UiDim {
 
     val PADDING_SMALL = 8.dp
     val PADDING_MEDIUM = 16.dp
