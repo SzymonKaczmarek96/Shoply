@@ -1,5 +1,6 @@
 package com.example.shoply.presentation.screens.productcatalogscreen
 
+import FabConfig
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
@@ -11,10 +12,13 @@ import kotlinx.serialization.Serializable
 data object ProductCatalogDestination
 
 @OptIn(ExperimentalMaterial3Api::class)
-fun NavGraphBuilder.productCatalogScreen() {
+fun NavGraphBuilder.productCatalogScreen(
+    onFabConfigChange: (FabConfig) -> Unit
+) {
     composable<ProductCatalogDestination> {
         ProductCatalogScreen(
             modifier = Modifier,
+            onFabConfigChange = onFabConfigChange
         )
     }
 }

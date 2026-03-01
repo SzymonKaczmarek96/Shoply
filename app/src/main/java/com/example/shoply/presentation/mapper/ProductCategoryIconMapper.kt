@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Checkroom
 import androidx.compose.material.icons.filled.Computer
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.SportsSoccer
@@ -22,5 +23,6 @@ object ProductCategoryIconMapper {
             ProductCategory.TOYS -> Icons.Filled.Toys
             ProductCategory.SPORTS -> Icons.Filled.SportsSoccer
             ProductCategory.OTHER -> Icons.Filled.Category
+            ProductCategory.ALL -> Icons.Filled.GridView
         }
 }

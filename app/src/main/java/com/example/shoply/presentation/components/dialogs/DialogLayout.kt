@@ -1,6 +1,5 @@
 package com.example.shoply.presentation.components.dialogs
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Info
@@ -17,8 +15,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -27,66 +25,84 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.shoply.domain.model.ProductCategory
 import com.example.shoply.presentation.utils.UiDim
 
 @Composable
 fun DialogLayout(
     dialogState: DialogState,
     modifier: Modifier,
+    onDismiss: () -> Unit,
+    onValueChange: ((String) -> Unit)? = null,
+    onCategorySelected: ((ProductCategory) -> Unit)? = null,
+    onConfirm: (() -> Unit)? = null
 ) {
-
     DialogContent(
-        state = dialogState,
+        dialogState = dialogState,
         modifier = modifier,
+        onDismiss = onDismiss,
+        onValueChange = onValueChange,
+        onCategorySelected = onCategorySelected,
+        onConfirm = onConfirm
     )
 }
 
 @Composable
-private fun DialogContent(
-    state: DialogState,
-    modifier: Modifier,
+fun DialogContent(
+    dialogState: DialogState,
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit,
+    onValueChange: ((String) -> Unit)? = null,
+    onCategorySelected: ((ProductCategory) -> Unit)? = null,
+    onConfirm: (() -> Unit)? = null
 ) {
-    when (state) {
-        is DialogState.None -> {}
+    when (dialogState) {
+
+        DialogState.None -> Unit
+
         is DialogState.MessageDialog -> {
             AlertDialog(
                 modifier = modifier,
                 icon = {
                     Icon(
-                        imageVector = state.type.toIcon(),
+                        imageVector = dialogState.type.toIcon(),
                         contentDescription = null
                     )
                 },
-                onDismissRequest = { state.onDismiss?.invoke() },
-                title = { Text(state.title) },
-                text = { Text(state.message) },
+                onDismissRequest = onDismiss,
+                title = { Text(dialogState.title) },
+                text = { Text(dialogState.message) },
                 confirmButton = {
-                    TextButton(onClick = { state.onConfirm.invoke() }) {
-                        Text(state.confirmButtonText)
+                    TextButton(
+                        onClick = {
+                            onDismiss()
+                        }
+                    ) {
+                        Text(dialogState.confirmButtonText)
                     }
                 },
-                dismissButton = state.dismissButtonText?.let {
+                dismissButton = dialogState.dismissButtonText?.let {
                     {
-                        TextButton(onClick = { state.onDismiss?.invoke() }) {
+                        TextButton(onClick = onDismiss) {
                             Text(it)
                         }
                     }
                 }
             )
         }
-
         is DialogState.InputDialog -> {
             InputDialogContent(
-                state = state,
-                modifier = modifier
+                state = dialogState,
+                onDismiss = onDismiss,
+                onValueChange = { onValueChange?.invoke(it) },
+                onCategorySelected = { onCategorySelected?.invoke(it) },
+                onConfirm = { onConfirm?.invoke() }
             )
         }
     }
@@ -96,18 +112,15 @@ private fun DialogContent(
 @Composable
 private fun InputDialogContent(
     state: DialogState.InputDialog,
-    modifier: Modifier
+    onDismiss: () -> Unit,
+    onValueChange: ((String) -> Unit),
+    onCategorySelected: ((ProductCategory) -> Unit),
+    onConfirm: (() -> Unit)
 ) {
-    var input by rememberSaveable { mutableStateOf("") }
-    var categoryInput by rememberSaveable { mutableStateOf("") }
-
-
     AlertDialog(
-        modifier = modifier,
-        onDismissRequest = { state.onDismiss?.invoke() },
+        onDismissRequest = { onDismiss() },
         title = { Text(state.title) },
         text = {
-
             Column {
                 Text(
                     text = state.message
@@ -120,9 +133,9 @@ private fun InputDialogContent(
                             color = Color(0xFFF9FAFB),
                             shape = RoundedCornerShape(12.dp)
                         ),
-                    value = input,
+                    value = state.firstInputValue,
                     maxLines = 1,
-                    onValueChange = { input = it },
+                    onValueChange = { onValueChange.invoke(it) },
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.Transparent,
                         unfocusedContainerColor = Color.Transparent,
@@ -139,19 +152,30 @@ private fun InputDialogContent(
                     text = "Add category: "
                 )
                 DropdownMenuProductCategories(
-                    state = state,
-                    categoryInput = categoryInput,
-                    onCategoryChange = { categoryInput = it })
+                    categories = state.productCategories,
+                    selectedCategory = state.selectedCategory,
+                    onCategorySelected = { onCategorySelected.invoke(it) }
+                )
+
+                state.errorMessage?.let {
+                    Text(
+                        text = it,
+                        color = Color.Red,
+                        modifier = Modifier.padding(top = UiDim.PADDING_LARGE)
+                    )
+                }
+
             }
         },
+
         confirmButton = {
-            TextButton(onClick = { state.onConfirm.invoke(input, categoryInput) }) {
+            TextButton(onClick = { onConfirm() }) {
                 Text(state.confirmButtonText)
             }
         },
         dismissButton = state.dismissButtonText?.let {
             {
-                TextButton(onClick = { state.onDismiss?.invoke() }) {
+                TextButton(onClick = { onDismiss() }) {
                     Text(it)
                 }
             }
@@ -159,38 +183,34 @@ private fun InputDialogContent(
     )
 }
 
-//FIXME dropdown menu doesn't work, cancel button doesn't work
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DropdownMenuProductCategories(
-    state: DialogState.InputDialog,
-    categoryInput: String,
-    onCategoryChange: (String) -> Unit
+    categories: List<ProductCategory>,
+    selectedCategory: ProductCategory?,
+    onCategorySelected: (ProductCategory) -> Unit
 ) {
-    val context = LocalContext.current
 
     var expanded by remember { mutableStateOf(false) }
-    var selectedText by remember {
-        mutableStateOf(state.productCategories?.getOrNull(0))
-    }
+
     Box() {
         ExposedDropdownMenuBox(
             expanded = expanded,
-            onExpandedChange = {
-                expanded = !expanded
-            }
+            onExpandedChange = { expanded = !expanded }
         ) {
             OutlinedTextField(
+                readOnly = true,
                 modifier = Modifier
+                    .menuAnchor()
                     .fillMaxWidth()
                     .padding(top = UiDim.PADDING_MEDIUM)
                     .background(
                         color = Color(0xFFF9FAFB),
                         shape = RoundedCornerShape(12.dp)
                     ),
-                value = categoryInput,
+                value = selectedCategory?.name ?: "",
+                onValueChange = {},
                 maxLines = 1,
-                onValueChange = { onCategoryChange(it) },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
@@ -201,30 +221,19 @@ private fun DropdownMenuProductCategories(
                     Text("Choose category")
                 },
                 trailingIcon = {
-                    IconButton(
-                        onClick = {
-
-                        },
-                        content = {
-                            Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = null
-                            )
-                        }
-                    )
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                 }
             )
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
-                state.productCategories?.forEach { item ->
+                categories.forEach { category ->
                     DropdownMenuItem(
-                        text = { Text(text = item.name) },
+                        text = { Text(category.name) },
                         onClick = {
-                            selectedText = item
+                            onCategorySelected(category)
                             expanded = false
-                            Toast.makeText(context, item.name, Toast.LENGTH_SHORT).show()
                         }
                     )
                 }
@@ -244,14 +253,15 @@ private fun DialogType.toIcon(): ImageVector =
 @Composable
 private fun AlertDialogLayoutPreview() {
     DialogContent(
-        state = DialogState.MessageDialog(
+        dialogState = DialogState.MessageDialog(
             title = "Error",
             message = "An error occurred while processing your request.",
             type = DialogType.INFO,
             confirmButtonText = "OK",
-            onConfirm = { },
         ),
-        modifier = Modifier
+        modifier = Modifier,
+        onDismiss = {},
+
     )
 }
 
@@ -264,10 +274,12 @@ private fun InputDialogLayoutPreview() {
             message = "Please enter your product: ",
             confirmButtonText = "Submit",
             dismissButtonText = "Cancel",
-            onConfirm = { _, _ -> },
-            onDismiss = {}
+            errorMessage = "Product name cannot be empty",
         ),
-        modifier = Modifier
+        onDismiss = {},
+        onValueChange = {},
+        onCategorySelected = { },
+        onConfirm = {}
     )
 }
 

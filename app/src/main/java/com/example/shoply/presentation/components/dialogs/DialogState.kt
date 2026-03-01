@@ -13,8 +13,6 @@ sealed interface DialogState {
         val type: DialogType = DialogType.INFO,
         val confirmButtonText: String,
         val dismissButtonText: String? = null,
-        val onConfirm: () -> Unit,
-        val onDismiss: (() -> Unit)? = null,
     ) : DialogState
 
     data class InputDialog(
@@ -22,20 +20,18 @@ sealed interface DialogState {
         val message: String,
         val confirmButtonText: String,
         val firstInputValue: String = "",
-        val secondInputValue: String = "",
+        val selectedCategory: ProductCategory? = null,
         val dismissButtonText: String? = null,
-        val onConfirm: (String, String) -> Unit,
-        val onDismiss: (() -> Unit)? = null,
-        val productCategories: List<ProductCategory>? = emptyList(),
-        val onCategorySelectClick: ((Boolean) -> Unit)? = null
+        val errorMessage: String? = null,
+        val productCategories: List<ProductCategory> = emptyList(),
     ) : DialogState
-
 }
-
 
 enum class DialogType {
     ERROR,
     SUCCESS,
     INFO
 }
+
+
 

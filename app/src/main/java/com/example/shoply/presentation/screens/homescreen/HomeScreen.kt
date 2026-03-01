@@ -1,5 +1,6 @@
 package com.example.shoply.presentation.screens.homescreen
 
+import FabConfig
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -39,9 +40,11 @@ import com.example.shoply.presentation.utils.UiDim
 import com.myapp.shoply.R
 import org.koin.androidx.compose.koinViewModel
 
+
 @Composable
 fun HomeScreen(
-    viewModel: HomeScreenViewModel = koinViewModel()
+    viewModel: HomeScreenViewModel = koinViewModel(),
+    onFabConfigChange: (FabConfig) -> Unit
 ) {
     RootView(
         uiState = viewModel.state.collectAsState().value,

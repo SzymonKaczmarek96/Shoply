@@ -35,15 +35,11 @@ class GetProductListUseCase {
 
     val product1 = Product(
         name = "Milk",
-        description = "1 gallon of whole milk",
-        icon = 0,
         isPurchased = false
     )
 
     val product2 = Product(
         name = "Bread",
-        description = "Whole wheat bread loaf",
-        icon = 0,
         isPurchased = true
     )
 
