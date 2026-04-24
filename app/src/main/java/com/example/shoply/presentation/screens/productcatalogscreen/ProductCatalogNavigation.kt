@@ -13,12 +13,12 @@ data object ProductCatalogDestination
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.productCatalogScreen(
-    onFabConfigChange: (FabConfig) -> Unit
+    onFabConfigChange: (FabConfig) -> Unit,
 ) {
     composable<ProductCatalogDestination> {
         ProductCatalogScreen(
             modifier = Modifier,
-            onFabConfigChange = onFabConfigChange
+            onFabConfigChange = onFabConfigChange,
         )
     }
 }

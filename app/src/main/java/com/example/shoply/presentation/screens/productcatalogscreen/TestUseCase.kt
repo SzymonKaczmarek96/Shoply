@@ -8,58 +8,70 @@ data class TestUseCase(
 ) {
     init {
         products.addAll(
-            listOf(
+            mutableListOf(
                 Product(
                     name = "Bread",
                     category = ProductCategory.HOUSEHOLD
                 ),
+
                 Product(
                     name = "Milk",
                     category = ProductCategory.SPORTS
                 ),
+
                 Product(
                     name = "Apples",
                     category = ProductCategory.OTHER,
                     isPurchased = true
                 ),
+
                 Product(
                     name = "Apples",
                     category = ProductCategory.OTHER,
                     isPurchased = true
                 ),
-                Product(
-                    name = "Apples",
-                    category = ProductCategory.OTHER,
-                    isPurchased = true
-                ), Product(
-                    name = "Apples",
-                    category = ProductCategory.OTHER,
-                    isPurchased = true
-                ),
+
                 Product(
                     name = "Apples",
                     category = ProductCategory.OTHER,
                     isPurchased = true
                 ),
+
                 Product(
                     name = "Apples",
                     category = ProductCategory.OTHER,
                     isPurchased = true
                 ),
+
                 Product(
                     name = "Apples",
                     category = ProductCategory.OTHER,
                     isPurchased = true
                 ),
+
                 Product(
                     name = "Apples",
                     category = ProductCategory.OTHER,
                     isPurchased = true
-                ), Product(
+                ),
+
+                Product(
                     name = "Apples",
                     category = ProductCategory.OTHER,
                     isPurchased = true
-                )
+                ),
+
+                Product(
+                    name = "Apples",
+                    category = ProductCategory.OTHER,
+                    isPurchased = true
+                ),
+
+                Product(
+                    name = "Apples",
+                    category = ProductCategory.OTHER,
+                    isPurchased = true
+                ),
             )
         )
     }

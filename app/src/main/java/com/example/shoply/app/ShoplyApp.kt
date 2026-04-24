@@ -2,6 +2,7 @@ package com.example.shoply.app
 
 import android.app.Application
 import com.example.shoply.koin.appModule
+import com.example.shoply.koin.databaseModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.GlobalContext
 
@@ -12,6 +13,7 @@ class ShoplyApp : Application() {
         GlobalContext.startKoin {
             androidContext(this@ShoplyApp)
             modules(appModule)
+            modules(databaseModule)
         }
     }
 }

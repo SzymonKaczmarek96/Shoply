@@ -1,19 +1,33 @@
 package com.example.shoply.domain.model
 
+import com.example.shoply.data.model.ProductListEntity
+import com.example.shoply.data.model.ProductListWithDetails
 import java.util.UUID
 
 data class ProductList(
-    val id: UUID = UUID.randomUUID(),
+    val productListId: UUID = UUID.randomUUID(),
     val name: String,
-    val items: List<Product>,
+    val products: List<Product>,
     val members: List<User>,
 ) {
     val isComplete: Boolean
-        get() = items.any { !it.isPurchased }
+        get() = products.all { it.isPurchased }
 
     val quantityOfProducts: Int
-        get() = items.size
+        get() = products.size
 
     val quantityOfPurchasedProducts: Int
-        get() = items.count { it.isPurchased }
+        get() = products.count { it.isPurchased }
+
+}
+
+fun ProductList.toEntity(): ProductListWithDetails {
+    return ProductListWithDetails(
+        productListEntity = ProductListEntity(
+            productListId = this.productListId,
+            name = this.name
+        ),
+        products = this.products.map { it.toEntity(this.productListId) },
+        members = this.members.map { it.toEntity() },
+    )
 }

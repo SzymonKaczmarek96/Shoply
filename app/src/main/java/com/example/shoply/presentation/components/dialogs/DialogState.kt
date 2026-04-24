@@ -20,6 +20,7 @@ sealed interface DialogState {
         val message: String,
         val confirmButtonText: String,
         val firstInputValue: String = "",
+        val placeholderFirstInput: String? = null,
         val selectedCategory: ProductCategory? = null,
         val dismissButtonText: String? = null,
         val errorMessage: String? = null,
@@ -27,11 +28,17 @@ sealed interface DialogState {
     ) : DialogState
 }
 
+enum class UiDialog {
+    NONE, INPUT_DIALOG,
+}
+
 enum class DialogType {
     ERROR,
     SUCCESS,
     INFO
 }
+
+
 
 
 

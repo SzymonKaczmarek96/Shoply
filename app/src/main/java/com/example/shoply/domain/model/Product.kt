@@ -1,14 +1,23 @@
 package com.example.shoply.domain.model
 
+import com.example.shoply.data.model.ProductEntity
 import java.util.UUID
 
 data class Product(
-    val uuid: UUID = UUID.randomUUID(),
+    val productId: UUID = UUID.randomUUID(),
     val name: String,
     val isPurchased: Boolean = false,
-    val isSelected: Boolean = false,
     val category: ProductCategory = ProductCategory.OTHER
-) {
+)
+
+fun Product.toEntity(listId: UUID? = null): ProductEntity {
+    return ProductEntity(
+        productId = this.productId,
+        name = this.name,
+        isPurchased = this.isPurchased,
+        category = this.category,
+        productListId = listId
+    )
 }
 
 enum class ProductCategory() {
@@ -19,5 +28,6 @@ enum class ProductCategory() {
     HOUSEHOLD,
     TOYS,
     SPORTS,
-    OTHER
+    OTHER;
 }
+

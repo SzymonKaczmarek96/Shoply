@@ -52,7 +52,7 @@ class GetProductListUseCase {
     val productList = listOf(
         ProductList(
             name = "Groceries",
-            items = listOf(
+            products = listOf(
                 product1,
                 product2
             ),

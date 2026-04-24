@@ -26,11 +26,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,9 +42,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.shoply.domain.model.Product
 import com.example.shoply.domain.model.ProductCategory
 import com.example.shoply.presentation.components.dialogs.DialogLayout
+import com.example.shoply.presentation.components.dialogs.DialogState
+import com.example.shoply.presentation.components.dialogs.toDialogInputState
+import com.example.shoply.presentation.components.snackbar.SnackbarManager
 import com.example.shoply.presentation.mapper.ProductCategoryIconMapper
 import com.example.shoply.presentation.utils.UiDim
 import org.koin.androidx.compose.koinViewModel
@@ -58,35 +62,65 @@ fun ProductCatalogScreen(
         koinViewModel(),
     onFabConfigChange: (FabConfig) -> Unit,
 ) {
-    val uiState = viewModel.state.collectAsState().value
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(uiState) {
+    val dialogState = uiState.activeDialog.toDialogInputState(
+        uiState = DialogState.InputDialog(
+            title = "Add Product",
+            message = "Enter the product name and select a category",
+            placeholderFirstInput = "Enter product name",
+            confirmButtonText = "Add",
+            dismissButtonText = "Cancel",
+            firstInputValue = uiState.dialogInput,
+            errorMessage = uiState.dialogError,
+            selectedCategory = uiState.selectedCategoryFromDialog,
+            productCategories = uiState.productCategories
+        )
+    )
+
+    LaunchedEffect(Unit) {
         onFabConfigChange(
             FabConfig(
                 visible = true,
                 onClick = {
-                    viewModel.openAddProductDialog()
+                    viewModel.onCreateDialog()
                 }
             )
         )
     }
 
+    LaunchedEffect(uiState.userMessage) {
+        uiState.userMessage?.let {
+            SnackbarManager.showSnackbar(
+                snackbarEvent = SnackbarManager.SnackbarEvent(
+                    message = it,
+                    type = SnackbarManager.SnackbarType.SUCCESS,
+                    duration = SnackbarDuration.Short,
+                    withDismissAction = false,
+                )
+            )
+            viewModel.onMessageShown()
+        }
+    }
+
     RootView(
         modifier = modifier,
         uiState = uiState,
-        onCheckboxClick = { productId, isChecked ->
-            viewModel.onProductCheckedChange(productId, isChecked)
+        onCheckboxClick = { productId ->
+            viewModel.onProductCheckedChange(productId)
         },
         onSearchQuery = { viewModel.findProduct(it) },
-        onCategoryClick = { viewModel.onCategorySelected(it) }
+        onCategoryClick = {
+            viewModel.onCategorySelected(it)
+        }
     )
 
     DialogLayout(
-        dialogState = uiState.dialog,
+        dialogState = dialogState,
         modifier = Modifier,
-        onDismiss = viewModel::dismissDialog,
-        onValueChange = viewModel::onDialogNameChange,
-        onCategorySelected = viewModel::onDialogCategorySelected,
+        onDismiss = { viewModel.dismissDialog() },
+        onValueChange = { viewModel.onDialogInputChange(it) },
+        onCategorySelected = viewModel::onSelectedProductCategory,
         onConfirm = viewModel::onDialogConfirm
     )
 }
@@ -96,7 +130,7 @@ fun ProductCatalogScreen(
 private fun RootView(
     modifier: Modifier,
     uiState: ProductCatalogScreenViewModel.State,
-    onCheckboxClick: (UUID, Boolean) -> Unit,
+    onCheckboxClick: (UUID) -> Unit,
     onSearchQuery: (String) -> Unit,
     onCategoryClick: (ProductCategory) -> Unit
 ) {
@@ -115,7 +149,7 @@ private fun RootView(
 private fun ProductCatalogLayout(
     modifier: Modifier,
     uiState: ProductCatalogScreenViewModel.State,
-    onCheckboxClick: (UUID, Boolean) -> Unit,
+    onCheckboxClick: (UUID) -> Unit,
     onSearchQuery: (String) -> Unit,
     onCategoryClick: (ProductCategory) -> Unit
 ) {
@@ -247,8 +281,8 @@ private fun CategoryRow(
             .fillMaxWidth()
             .padding(top = UiDim.PADDING_SMALL, bottom = UiDim.PADDING_LARGE)
     ) {
-
-        items(uiState.productCategories) { item ->
+        val categories = uiState.existingProductCategory.sorted()
+        items(categories) { item ->
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -257,7 +291,7 @@ private fun CategoryRow(
                         onCategoryClick.invoke(item)
                     }
                     .background(
-                        color = if (uiState.selectedCategory.name == item.name)
+                        color = if (uiState.selectedCategoryFromFilterCategory.name == item.name)
                             Color(0xffFF0080) else Color(0xFFF5F5F5),
                         shape = RoundedCornerShape(12.dp)
                     )
@@ -268,7 +302,7 @@ private fun CategoryRow(
                         .padding(horizontal = UiDim.PADDING_MEDIUM),
                     imageVector = ProductCategoryIconMapper.iconForCategory(item),
                     contentDescription = "Category Icon",
-                    tint = if (uiState.selectedCategory.name == item.name)
+                    tint = if (uiState.selectedCategoryFromFilterCategory.name == item.name)
                         Color(0xFFFFFFFF) else Color(0xFF8F8F8F),
                 )
                 Text(
@@ -277,7 +311,7 @@ private fun CategoryRow(
                         .padding(end = UiDim.PADDING_LARGE),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
-                    color = if (uiState.selectedCategory.name == item.name)
+                    color = if (uiState.selectedCategoryFromFilterCategory.name == item.name)
                         Color(0xFFFFFFFF) else Color(0xFF8F8F8F)
                 )
             }
@@ -290,10 +324,10 @@ private fun CategoryRow(
 @ExperimentalMaterial3Api
 private fun ProductCatalogItem(
     uiState: ProductCatalogScreenViewModel.State,
-    onCheckboxClick: (UUID, Boolean) -> Unit,
+    onCheckboxClick: (UUID) -> Unit,
 ) {
     LazyColumn {
-        items(uiState.products) { item ->
+        items(items = uiState.items) { item ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -311,10 +345,10 @@ private fun ProductCatalogItem(
                 ) {
 
                     Checkbox(
-                        checked = item.isSelected,
+                        checked = uiState.selectedIds.contains(item.productId),
                         onCheckedChange = {
                             onCheckboxClick.invoke(
-                                item.uuid, it
+                                item.productId
                             )
                         },
                         colors = CheckboxDefaults.colors(
@@ -326,7 +360,6 @@ private fun ProductCatalogItem(
                     Text(
                         text = item.name,
                         fontSize = 16.sp,
-//                        textDecoration = if (item.isPurchased) TextDecoration.LineThrough else null,
                         fontWeight = FontWeight.Normal,
                         color = Color(0xff111827)
                     )
@@ -354,7 +387,7 @@ fun ProductCatalogScreenPreview() {
     ProductCatalogLayout(
         modifier = Modifier,
         uiState = ProductCatalogScreenViewModel.State(),
-        onCheckboxClick = { _, _ -> },
+        onCheckboxClick = { _ -> },
         onSearchQuery = {},
         onCategoryClick = {}
     )
@@ -383,9 +416,9 @@ fun ProductCatalogItemPreview() {
 
     ProductCatalogItem(
         uiState = ProductCatalogScreenViewModel.State(
-            products = sampleProducts
+            allProducts = sampleProducts
         ),
-        onCheckboxClick = { _, _ -> }
+        onCheckboxClick = { _ -> }
     )
 }
 

@@ -65,8 +65,8 @@ fun DialogContent(
     when (dialogState) {
 
         DialogState.None -> Unit
-
         is DialogState.MessageDialog -> {
+
             AlertDialog(
                 modifier = modifier,
                 icon = {
@@ -143,19 +143,22 @@ private fun InputDialogContent(
                         unfocusedIndicatorColor = Color.Transparent
                     ),
                     placeholder = {
-                        Text("Enter product name")
+                        Text(state.placeholderFirstInput ?: "")
                     }
                 )
                 Spacer(modifier = Modifier.padding(UiDim.PADDING_MEDIUM))
 
-                Text(
-                    text = "Add category: "
-                )
-                DropdownMenuProductCategories(
-                    categories = state.productCategories,
-                    selectedCategory = state.selectedCategory,
-                    onCategorySelected = { onCategorySelected.invoke(it) }
-                )
+
+                if (state.productCategories.isNotEmpty()) {
+                    Text(
+                        text = "Add category: "
+                    )
+                    DropdownMenuProductCategories(
+                        categories = state.productCategories,
+                        selectedCategory = state.selectedCategory,
+                        onCategorySelected = { onCategorySelected.invoke(it) }
+                    )
+                }
 
                 state.errorMessage?.let {
                     Text(

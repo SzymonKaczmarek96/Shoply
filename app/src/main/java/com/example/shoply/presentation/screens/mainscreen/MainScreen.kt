@@ -1,7 +1,7 @@
-
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -16,11 +16,14 @@ import androidx.navigation.compose.rememberNavController
 import com.example.shoply.presentation.components.ShoplyBottomBar
 import com.example.shoply.presentation.components.ShoplyFab
 import com.example.shoply.presentation.components.ShoplyTopBar
+import com.example.shoply.presentation.components.snackbar.ShoplySnackbarHost
 import com.example.shoply.presentation.screens.homescreen.HomeDestination
 import com.example.shoply.presentation.screens.homescreen.homeScreen
 import com.example.shoply.presentation.screens.homescreen.navigateToHomeScreen
 import com.example.shoply.presentation.screens.productcatalogscreen.navigateToProductCatalogScreen
 import com.example.shoply.presentation.screens.productcatalogscreen.productCatalogScreen
+import com.example.shoply.presentation.screens.productlistscreen.navigateToProductListScreen
+import com.example.shoply.presentation.screens.productlistscreen.productListScreen
 import com.myapp.shoply.R
 
 @Composable
@@ -33,9 +36,15 @@ fun MainScreen(
         navBackStackEntry?.destination?.hasRoute<HomeDestination>() == true
 
     var fabConfig by remember { mutableStateOf(FabConfig()) }
-
+    val snackbarHost = remember { SnackbarHostState() }
 
     Scaffold(
+        snackbarHost = {
+            ShoplySnackbarHost(
+                hostState = snackbarHost,
+                modifier = Modifier
+            )
+        },
         topBar = {
             ShoplyTopBar(
                 modifier = Modifier,
@@ -70,9 +79,15 @@ fun MainScreen(
             startDestination = HomeDestination
         ) {
             homeScreen(
-                onFabConfigChange = { fabConfig = it }
+                onFabConfigChange = { fabConfig = it },
+                onListClick = {
+                    navController.navigateToProductListScreen(it)
+                }
             )
             productCatalogScreen(
+                onFabConfigChange = { fabConfig = it },
+            )
+            productListScreen(
                 onFabConfigChange = { fabConfig = it }
             )
         }
