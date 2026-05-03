@@ -57,6 +57,7 @@ fun ProductListScreen(
     viewModel: ProductListScreenViewModel = koinInject(),
     listId: UUID?,
     onFabClickChange: (FabConfig) -> Unit,
+    onShoppingIconClick: () -> Unit,
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
@@ -83,13 +84,18 @@ fun ProductListScreen(
             )
         )
     }
+    LaunchedEffect(listId) {
+        viewModel.updateListId(listId)
+    }
+
 
     RootView(
         modifier = Modifier,
         uiState = uiState,
         onCheckboxClick = { uuid, boolean ->
             viewModel.updateSelectedIds(uuid)
-        }
+        },
+        onShoppingIconClick = onShoppingIconClick
     )
 
     DialogLayout(
@@ -118,12 +124,14 @@ private fun RootView(
     uiState: ProductListScreenViewModel.State,
     onCheckboxClick: (UUID, Boolean) -> Unit = { _, _ -> },
     onSearchQuery: (String) -> Unit = {},
+    onShoppingIconClick: () -> Unit,
 ) {
     ProductListLayout(
         modifier = modifier,
         uiState = uiState,
         onCheckboxClick = onCheckboxClick,
-        onSearchQuery = onSearchQuery
+        onSearchQuery = onSearchQuery,
+        onShoppingIconClick = onShoppingIconClick
     )
 }
 
@@ -134,6 +142,7 @@ private fun ProductListLayout(
     uiState: ProductListScreenViewModel.State,
     onCheckboxClick: (UUID, Boolean) -> Unit = { _, _ -> },
     onSearchQuery: (String) -> Unit = {},
+    onShoppingIconClick: () -> Unit,
 ) {
 
     var value by remember { mutableStateOf("") }
@@ -165,7 +174,9 @@ private fun ProductListLayout(
                     IconButton(
                         modifier = Modifier
                             .size(UiDim.ICON_SIZE),
-                        onClick = {}
+                        onClick = {
+                            onShoppingIconClick()
+                        }
                     ) {
                         Icon(
                             modifier = Modifier,
@@ -278,10 +289,10 @@ private fun ProductCatalogItem(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
-                            checked = uiState.selectedIds?.contains(item.productId) == true,
+                            checked = uiState.selectedIds?.contains(item.id) == true,
                             onCheckedChange = {
                                 onCheckboxClick.invoke(
-                                    item.productId, it
+                                    item.id, it
                                 )
                             },
                             colors = CheckboxDefaults.colors(
@@ -291,7 +302,7 @@ private fun ProductCatalogItem(
                             )
                         )
                         Text(
-                            text = item.name,
+                            text = item.product.name,
                             fontSize = 16.sp,
                             textDecoration = if (item.isPurchased) TextDecoration.LineThrough else null,
                             fontWeight = FontWeight.Normal,
@@ -303,7 +314,7 @@ private fun ProductCatalogItem(
                             modifier = Modifier
                                 .padding(horizontal = UiDim.PADDING_LARGE),
                             imageVector = ProductCategoryIconMapper
-                                .iconForCategory(item.category),
+                                .iconForCategory(item.product.category),
                             contentDescription = "Product Icon",
                             tint = Color.Unspecified
                         )
@@ -357,6 +368,7 @@ fun ProductCatalogScreenPreview() {
         uiState = ProductListScreenViewModel.State(),
         onCheckboxClick = { _, _ -> },
         onSearchQuery = {},
+        onShoppingIconClick = {}
     )
 }
 
@@ -377,7 +389,6 @@ fun ProductCatalogItemPreview() {
         Product(
             name = "Apples",
             category = ProductCategory.OTHER,
-            isPurchased = true
         ),
     )
 }

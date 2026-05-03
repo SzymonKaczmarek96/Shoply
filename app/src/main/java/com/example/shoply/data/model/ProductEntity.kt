@@ -8,22 +8,15 @@ import java.util.UUID
 
 @Entity(tableName = "products")
 data class ProductEntity(
-    @PrimaryKey val productId: UUID,
+    @PrimaryKey val productId: UUID = UUID.randomUUID(),
     val name: String,
-    val isPurchased: Boolean,
     val category: ProductCategory,
-    val productListId: UUID? = null
 )
 
 fun ProductEntity.toDomain(): Product {
     return Product(
         productId = this.productId,
         name = this.name,
-        isPurchased = this.isPurchased,
         category = this.category,
     )
-}
-
-fun ProductEntity.assignToList(listId: UUID): ProductEntity {
-    return this.copy(productListId = listId)
 }

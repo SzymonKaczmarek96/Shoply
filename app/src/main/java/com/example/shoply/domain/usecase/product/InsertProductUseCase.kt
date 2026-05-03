@@ -1,4 +1,4 @@
-package com.example.shoply.domain.usecase
+package com.example.shoply.domain.usecase.product
 
 import com.example.shoply.data.repository.ProductRepository
 import com.example.shoply.domain.model.Product

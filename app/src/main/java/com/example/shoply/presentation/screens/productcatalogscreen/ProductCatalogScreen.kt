@@ -16,8 +16,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.PlaylistAddCheckCircle
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Checkbox
@@ -25,6 +25,7 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
@@ -61,6 +62,7 @@ fun ProductCatalogScreen(
     viewModel: ProductCatalogScreenViewModel =
         koinViewModel(),
     onFabConfigChange: (FabConfig) -> Unit,
+    showSpecialIcon: Boolean,
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
@@ -78,6 +80,7 @@ fun ProductCatalogScreen(
         )
     )
 
+
     LaunchedEffect(Unit) {
         onFabConfigChange(
             FabConfig(
@@ -87,6 +90,7 @@ fun ProductCatalogScreen(
                 }
             )
         )
+        viewModel.validateLastScreen(showSpecialIcon)
     }
 
     LaunchedEffect(uiState.userMessage) {
@@ -112,7 +116,8 @@ fun ProductCatalogScreen(
         onSearchQuery = { viewModel.findProduct(it) },
         onCategoryClick = {
             viewModel.onCategorySelected(it)
-        }
+        },
+
     )
 
     DialogLayout(
@@ -142,7 +147,6 @@ private fun RootView(
         onCategoryClick = onCategoryClick
     )
 }
-
 
 @Composable
 @ExperimentalMaterial3Api
@@ -181,18 +185,26 @@ private fun ProductCatalogLayout(
                     modifier = Modifier,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(
-                        modifier = Modifier
-                            .size(UiDim.ICON_SIZE),
-                        onClick = {}
-                    ) {
-                        Icon(
-                            modifier = Modifier,
-                            imageVector = Icons.Default.AddShoppingCart,
-                            contentDescription = "Refresh logo",
-                            tint = Color(0xff4B5563)
-                        )
+                    if (uiState.selectedIds.isNotEmpty() && uiState.isLastScreenProductListScreen == true) {
+                        uiState.selectedIds.any().let {
+                            IconButton(
+                                modifier = Modifier
+                                    .size(UiDim.ICON_SIZE),
+                                onClick = {},
+                                colors = IconButtonDefaults.iconButtonColors(
+                                    disabledContainerColor = Color.White,
+                                    disabledContentColor = Color.White
+                                ),
+                            ) {
+                                Icon(
+                                    modifier = Modifier,
+                                    imageVector = Icons.Default.PlaylistAddCheckCircle,
+                                    contentDescription = "Refresh logo",
+                                    tint = Color(0xff4B5563)
+                                )
 
+                            }
+                        }
                     }
                     IconButton(
                         modifier = Modifier
@@ -410,7 +422,6 @@ fun ProductCatalogItemPreview() {
         Product(
             name = "Apples",
             category = ProductCategory.OTHER,
-            isPurchased = true
         )
     )
 

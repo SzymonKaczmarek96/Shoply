@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.shoply.domain.model.Product
 import com.example.shoply.domain.model.ProductCategory
-import com.example.shoply.domain.usecase.GetProductUseCase
-import com.example.shoply.domain.usecase.InsertProductUseCase
+import com.example.shoply.domain.usecase.product.GetProductUseCase
+import com.example.shoply.domain.usecase.product.InsertProductUseCase
 import com.example.shoply.presentation.components.dialogs.UiDialog
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,6 +34,7 @@ class ProductCatalogScreenViewModel(
         val dialogInput: String = "",
         val dialogError: String? = null,
         val userMessage: String? = null,
+        val isLastScreenProductListScreen: Boolean? = false
     ) {
         val items: List<Product> =
             if (selectedCategoryFromFilterCategory == ProductCategory.ALL) {
@@ -41,6 +42,29 @@ class ProductCatalogScreenViewModel(
             } else {
                 allProducts.filter { it.category == selectedCategoryFromFilterCategory }
             }
+    }
+
+    // businnes logic
+
+    fun passSelectedProductList(): List<Product> {
+        return _state.value.allProducts
+            .filter { _state.value.selectedIds.contains(it.productId) }
+    }
+
+    fun onDeleteClick() {
+
+    }
+
+    fun selectProductFromProductsCatalog() {
+
+    }
+
+    fun validateLastScreen(showSpecialIcon: Boolean) {
+        _state.update { currentState ->
+            currentState.copy(
+                isLastScreenProductListScreen = showSpecialIcon
+            )
+        }
     }
 
 

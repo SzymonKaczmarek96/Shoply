@@ -1,11 +1,13 @@
-package com.example.shoply.domain.usecase
+package com.example.shoply.domain.usecase.product
 
-import com.example.shoply.domain.model.Product
+import com.example.shoply.domain.model.ProductCategory
+import com.example.shoply.domain.model.ProductInList
 import com.example.shoply.domain.model.ProductList
 import com.example.shoply.domain.model.Role
 import com.example.shoply.domain.model.User
+import java.util.UUID
 
-class GetProductListUseCase {
+class Test {
 
     // val id: UUID = UUID.randomUUID(),
     //    val name: String,
@@ -33,14 +35,16 @@ class GetProductListUseCase {
         profilePictureUrl = "https://randomuser.me/api/portraits/women/8.jpg"
     )
 
-    val product1 = Product(
+    val product1 = ProductInList(
         name = "Milk",
-        isPurchased = false
+        productListId = UUID.randomUUID(),
+        category = ProductCategory.OTHER,
     )
 
-    val product2 = Product(
+    val product2 = ProductInList(
         name = "Bread",
-        isPurchased = true
+        productListId = UUID.randomUUID(),
+        category = ProductCategory.OTHER,
     )
 
 //    val uuid: UUID = UUID.randomUUID(),

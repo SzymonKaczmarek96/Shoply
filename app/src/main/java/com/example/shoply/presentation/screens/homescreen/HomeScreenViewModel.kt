@@ -1,18 +1,24 @@
 package com.example.shoply.presentation.screens.homescreen
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.shoply.domain.model.ProductList
 import com.example.shoply.domain.model.Role
 import com.example.shoply.domain.model.User
-import com.example.shoply.domain.usecase.GetProductListUseCase
+import com.example.shoply.domain.usecase.productlist.AddProductListUseCase
+import com.example.shoply.domain.usecase.productlist.DeleteProductListUseCase
+import com.example.shoply.domain.usecase.productlist.GetProductListUseCase
 import com.example.shoply.presentation.components.dialogs.UiDialog
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.util.UUID
 
 class HomeScreenViewModel(
-    private val getProductListUseCase: GetProductListUseCase = GetProductListUseCase(),
+    private val getProductListUseCase: GetProductListUseCase,
+    private val addProductListUseCase: AddProductListUseCase,
+    private val deleteProductListUseCase: DeleteProductListUseCase
 ) : ViewModel() {
 
 
@@ -59,9 +65,11 @@ class HomeScreenViewModel(
     fun deleteShopList(productListId: UUID) {
         val foundedShopList =
             _state.value.shopList?.find { it.productListId == productListId } ?: return
+        viewModelScope.launch {
+            deleteProductListUseCase.invoke(foundedShopList)
+        }
         _state.update {
             it.copy(
-                shopList = it.shopList?.minus(foundedShopList),
                 userMessage = "${foundedShopList.name} list deleted"
             )
         }
@@ -73,33 +81,37 @@ class HomeScreenViewModel(
             _state.update { it.copy(dialogError = "A list with this name already exists") }
             return
         }
-        _state.update {
-            it.copy(
-                shopList = it.shopList?.plus(
-                    ProductList(
-                        name = name, products = emptyList(), members = listOf(
-                            User(
-                                name = "Alice Johnson",
-                                email = "123@gmail.com",
-                                role = Role.CREATOR,
-                            )
+        viewModelScope.launch {
+            addProductListUseCase.invoke(
+                ProductList(
+                    name = name,
+                    products = emptyList(),
+                    members = listOf(
+                        User(
+                            name = "Alice Johnson",
+                            email = "123@gmail.com",
+                            role = Role.CREATOR,
                         )
                     )
-                ),
-                activeDialog = UiDialog.NONE,
-                dialogInput = "",
-                userMessage = "$name list created"
+                )
             )
+        }
+        _state.update { currentState ->
+            currentState.copy(userMessage = "$name has been added successful")
         }
     }
 
     //init
 
     init {
-        _state.update { currentState ->
-            currentState.copy(
-                shopList = getProductListUseCase.productList,
-            )
+        viewModelScope.launch {
+            getProductListUseCase.invoke().collect { productLists ->
+                _state.update { currentState ->
+                    currentState.copy(
+                        shopList = productLists
+                    )
+                }
+            }
         }
     }
 }

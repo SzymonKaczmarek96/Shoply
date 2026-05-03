@@ -1,3 +1,4 @@
+
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
@@ -20,8 +21,10 @@ import com.example.shoply.presentation.components.snackbar.ShoplySnackbarHost
 import com.example.shoply.presentation.screens.homescreen.HomeDestination
 import com.example.shoply.presentation.screens.homescreen.homeScreen
 import com.example.shoply.presentation.screens.homescreen.navigateToHomeScreen
+import com.example.shoply.presentation.screens.productcatalogscreen.ProductCatalogDestination
 import com.example.shoply.presentation.screens.productcatalogscreen.navigateToProductCatalogScreen
 import com.example.shoply.presentation.screens.productcatalogscreen.productCatalogScreen
+import com.example.shoply.presentation.screens.productlistscreen.ProductListDestination
 import com.example.shoply.presentation.screens.productlistscreen.navigateToProductListScreen
 import com.example.shoply.presentation.screens.productlistscreen.productListScreen
 import com.myapp.shoply.R
@@ -34,6 +37,8 @@ fun MainScreen(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val isHomeScreen =
         navBackStackEntry?.destination?.hasRoute<HomeDestination>() == true
+    val isProductScreen =
+        navBackStackEntry?.destination?.hasRoute<ProductCatalogDestination>() == true
 
     var fabConfig by remember { mutableStateOf(FabConfig()) }
     val snackbarHost = remember { SnackbarHostState() }
@@ -66,18 +71,22 @@ fun MainScreen(
         floatingActionButtonPosition = FabPosition.Center,
         bottomBar = {
             ShoplyBottomBar(
+                isHomeScreen = isHomeScreen,
+                isProductScreen = isProductScreen,
                 onHomeClick = { navController.navigateToHomeScreen() },
                 onProductsClick = { navController.navigateToProductCatalogScreen() },
                 onSettingsClick = {}
             )
         }
     ) { padding ->
-
         NavHost(
             modifier = Modifier.padding(padding),
             navController = navController,
             startDestination = HomeDestination
         ) {
+            val cameFromProductList = navController.previousBackStackEntry
+                ?.destination?.hasRoute<ProductListDestination>() == true
+
             homeScreen(
                 onFabConfigChange = { fabConfig = it },
                 onListClick = {
@@ -86,9 +95,13 @@ fun MainScreen(
             )
             productCatalogScreen(
                 onFabConfigChange = { fabConfig = it },
+                showSpecialIcon = cameFromProductList,
             )
             productListScreen(
-                onFabConfigChange = { fabConfig = it }
+                onFabConfigChange = { fabConfig = it },
+                navigateToProductCatalog = {
+                    navController.navigateToProductCatalogScreen()
+                },
             )
         }
 

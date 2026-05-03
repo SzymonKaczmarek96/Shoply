@@ -16,13 +16,17 @@ data class ProductListDestination(
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
-fun NavGraphBuilder.productListScreen(onFabConfigChange: (FabConfig) -> Unit) {
+fun NavGraphBuilder.productListScreen(
+    onFabConfigChange: (FabConfig) -> Unit,
+    navigateToProductCatalog: () -> Unit,
+) {
     composable<ProductListDestination> { backStackEntry ->
         val destination = backStackEntry.toRoute<ProductListDestination>()
         val listId = destination.listId?.let { UUID.fromString(it) }
         ProductListScreen(
             listId = listId,
-            onFabClickChange = onFabConfigChange
+            onFabClickChange = onFabConfigChange,
+            onShoppingIconClick = navigateToProductCatalog,
         )
     }
 }

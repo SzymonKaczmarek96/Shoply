@@ -21,5 +21,20 @@ class ProductRepositoryImpl(
         productDao.insertProducts(productsEntity)
     }
 
+    override suspend fun updateProducts(product: Product) {
+        val productEntity = product.toEntity()
+        productDao.updateProduct(
+            productId = productEntity.productId,
+            name = productEntity.name,
+        )
+    }
+
+    override suspend fun deleteSelectedProducts(products: List<Product>) {
+        val productsEntity = products.map { it.toEntity() }
+        productsEntity.forEach {
+            productDao.deleteProduct(it.productId)
+        }
+    }
+
 
 }

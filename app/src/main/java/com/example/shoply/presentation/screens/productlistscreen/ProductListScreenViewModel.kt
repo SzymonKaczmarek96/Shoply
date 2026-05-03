@@ -1,69 +1,32 @@
 package com.example.shoply.presentation.screens.productlistscreen
 
 import androidx.lifecycle.ViewModel
-import com.example.shoply.domain.model.Product
+import androidx.lifecycle.viewModelScope
 import com.example.shoply.domain.model.ProductCategory
+import com.example.shoply.domain.model.ProductInList
+import com.example.shoply.domain.usecase.productinlist.GetProductInListUseCase
+import com.example.shoply.domain.usecase.productlist.AddProductListUseCase
 import com.example.shoply.presentation.components.dialogs.UiDialog
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.util.UUID
 
 class ProductListScreenViewModel(
-
+    private val addProductListUseCase: AddProductListUseCase,
+    private val getProductInList: GetProductInListUseCase
 ) : ViewModel() {
 
+    private var observeJob: Job? = null
     private val _state = MutableStateFlow(State())
     val state: StateFlow<State> = _state.asStateFlow()
 
     data class State(
-        val allProducts: List<Product>? = listOf(
-            Product(
-                name = "Milk",
-                category = ProductCategory.OTHER
-            ),
-            Product(
-                name = "Bike",
-                category = ProductCategory.SPORTS
-            ),
-            Product(
-                name = "Cacao",
-                category = ProductCategory.OTHER
-            ),
-            Product(
-                name = "Ball",
-                category = ProductCategory.SPORTS
-            ),
-            Product(
-                name = "Ball",
-                category = ProductCategory.SPORTS
-            ),
-            Product(
-                name = "Ball",
-                category = ProductCategory.SPORTS
-            ),
-            Product(
-                name = "Ball",
-                category = ProductCategory.SPORTS
-            ),
-            Product(
-                name = "Ball",
-                category = ProductCategory.SPORTS
-            ),
-            Product(
-                name = "Ball",
-                category = ProductCategory.SPORTS
-            ),
-            Product(
-                name = "Ball",
-                category = ProductCategory.SPORTS
-            ),
-            Product(
-                name = "Ball",
-                category = ProductCategory.SPORTS
-            ),
-        ),
+        val listId: UUID? = null,
+        val allProducts: List<ProductInList>? = emptyList(),
         val existingCategory: List<ProductCategory>? = listOf(
             ProductCategory.OTHER,
             ProductCategory.SPORTS,
@@ -73,14 +36,13 @@ class ProductListScreenViewModel(
         val inputDialog: String? = null,
         val errorMessageDialog: String? = null,
         val productCategories: List<ProductCategory>? = emptyList(),
-        val selectedCategoryFromDialog: ProductCategory? = null
+        val selectedCategoryFromDialog: ProductCategory? = null,
     ) {
-        val groupedProduct: Map<ProductCategory, List<Product>>? =
-            allProducts?.groupBy { it.category }
+        val groupedProduct: Map<ProductCategory, List<ProductInList>>? =
+            allProducts?.groupBy { it.product.category }
     }
 
     //INIT
-
     init {
         _state.update { currentState ->
             currentState.copy(
@@ -89,7 +51,33 @@ class ProductListScreenViewModel(
         }
     }
 
+
     // BUSINESS LOGIC
+    fun updateListId(listId: UUID?) {
+        if (_state.value.listId == listId) return
+
+        _state.update { currentState ->
+            currentState.copy(
+                listId = listId
+            )
+        }
+
+        observeProducts(listId)
+    }
+
+    private fun observeProducts(listId: UUID?) {
+        if (listId == null) return
+        observeJob?.cancel()
+        observeJob = viewModelScope.launch {
+            getProductInList(listId).collect { products ->
+                _state.update {
+                    it.copy(
+                        allProducts = products,
+                    )
+                }
+            }
+        }
+    }
 
     fun updateSelectedIds(productId: UUID) {
         if (_state.value.selectedIds?.contains(productId) == true) {
@@ -97,7 +85,7 @@ class ProductListScreenViewModel(
                 currentState.copy(
                     selectedIds = currentState.selectedIds?.minus(setOf(productId)),
                     allProducts = currentState.allProducts?.map { product ->
-                        if (product.productId == productId) {
+                        if (product.id == productId) {
                             product.copy(isPurchased = false)
                         } else {
                             product
@@ -110,7 +98,7 @@ class ProductListScreenViewModel(
                 currentState.copy(
                     selectedIds = currentState.selectedIds?.plus(setOf(productId)),
                     allProducts = currentState.allProducts?.map { product ->
-                        if (product.productId == productId) {
+                        if (product.id == productId) {
                             product.copy(isPurchased = true)
                         } else {
                             product
@@ -125,8 +113,6 @@ class ProductListScreenViewModel(
         val state = _state.value
         val productName = state.inputDialog
         val productCategory = state.selectedCategoryFromDialog
-
-
     }
 
     //DIALOG

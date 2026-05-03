@@ -42,7 +42,7 @@ import coil.compose.AsyncImage
 import com.example.shoply.domain.model.ProductList
 import com.example.shoply.domain.model.Role
 import com.example.shoply.domain.model.User
-import com.example.shoply.domain.usecase.GetProductListUseCase
+import com.example.shoply.domain.usecase.product.Test
 import com.example.shoply.presentation.components.dialogs.DialogLayout
 import com.example.shoply.presentation.components.dialogs.DialogState
 import com.example.shoply.presentation.components.dialogs.toDialogInputState
@@ -112,7 +112,10 @@ fun HomeScreen(
         modifier = Modifier,
         onDismiss = { viewModel.onDialogDismiss() },
         onValueChange = { viewModel.onDialogInputChange(it) },
-        onConfirm = { viewModel.onDialogConfirm() },
+        onConfirm = {
+            viewModel.onDialogConfirm()
+            viewModel.onDialogDismiss()
+        },
     )
 }
 
@@ -281,8 +284,8 @@ private fun CardListScreen(
                 .padding(start = UiDim.PADDING_LARGE, bottom = UiDim.PADDING_LARGE),
         ) {
             Text(
-                "${productList.quantityOfPurchasedProducts} " +
-                        "/ ${productList.quantityOfProducts}" +
+                "${productList.purchasedQuantity} " +
+                        "/ ${productList.totalQuantity}" +
                         " items purchased",
                 color = Color.Gray
             )
@@ -352,7 +355,7 @@ private fun MembersImageList(
 fun HomeScreenPreview() {
     HomeScreenLayout(
         uiState = HomeScreenViewModel.State(
-            shopList = GetProductListUseCase().productList
+            shopList = Test().productList
         ),
         onDeleteIconClick = {},
         onListClick = {}
@@ -365,7 +368,7 @@ fun HomeContentScreenPreview() {
     HomeContentScreen(
         modifier = Modifier,
         uiState = HomeScreenViewModel.State(
-            shopList = GetProductListUseCase().productList
+            shopList = Test().productList
         ),
         onDeleteIconClick = {},
         onListClick = {}
@@ -377,7 +380,7 @@ fun HomeContentScreenPreview() {
 fun CardListScreenPreview() {
     CardListScreen(
         modifier = Modifier,
-        productList = GetProductListUseCase().productList.first(),
+        productList = Test().productList.first(),
         onDeleteIconClick = {},
         onListClick = {}
     )

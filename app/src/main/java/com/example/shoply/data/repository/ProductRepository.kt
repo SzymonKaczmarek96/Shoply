@@ -7,4 +7,8 @@ interface ProductRepository {
     fun getAllProducts(): Flow<List<Product>>
 
     suspend fun addProducts(vararg products: Product)
+
+    suspend fun updateProducts(product: Product)
+
+    suspend fun deleteSelectedProducts(products: List<Product>)
 }

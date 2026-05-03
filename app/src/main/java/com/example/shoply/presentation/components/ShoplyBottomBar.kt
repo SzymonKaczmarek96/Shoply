@@ -10,10 +10,6 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 
@@ -22,29 +18,31 @@ data class ShoplyBottomBarItem(
     val title: String,
     val icon: ImageVector,
     val onClick: () -> Unit,
+    val isSelected: Boolean? = false,
 )
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShoplyBottomBar(
+    isProductScreen: Boolean,
+    isHomeScreen: Boolean,
     onHomeClick: () -> Unit,
     onProductsClick: () -> Unit,
     onSettingsClick: () -> Unit,
 ) {
-    var selectedItemIndex by rememberSaveable {
-        mutableIntStateOf(0)
-    }
     val items = listOf(
         ShoplyBottomBarItem(
             title = "Home",
             icon = Icons.Default.Home,
-            onClick = onHomeClick
+            onClick = onHomeClick,
+            isSelected = isHomeScreen
         ),
         ShoplyBottomBarItem(
             title = "Products",
             icon = Icons.Default.ShoppingCart,
-            onClick = onProductsClick
+            onClick = onProductsClick,
+            isSelected = isProductScreen,
         ),
         ShoplyBottomBarItem(
             title = "Settings",
@@ -54,12 +52,11 @@ fun ShoplyBottomBar(
     )
 
     NavigationBar {
-        items.forEachIndexed { index, item ->
+        items.forEach { item ->
             NavigationBarItem(
-                selected = selectedItemIndex == index,
+                selected = item.isSelected == true,
                 onClick = {
                     item.onClick.invoke()
-                    selectedItemIndex = index
                 },
                 label = { Text(text = item.title) },
                 icon = {
@@ -77,5 +74,11 @@ fun ShoplyBottomBar(
 @Preview
 @Composable
 fun ShoplyBottomBarPreview() {
-    ShoplyBottomBar(onHomeClick = {}, onProductsClick = {}, onSettingsClick = {})
+    ShoplyBottomBar(
+        isHomeScreen = true,
+        isProductScreen = false,
+        onHomeClick = {},
+        onProductsClick = {},
+        onSettingsClick = {}
+    )
 }

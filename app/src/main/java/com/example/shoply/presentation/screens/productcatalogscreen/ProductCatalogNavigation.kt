@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.example.shoply.domain.model.Product
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -14,11 +15,14 @@ data object ProductCatalogDestination
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.productCatalogScreen(
     onFabConfigChange: (FabConfig) -> Unit,
+    onSpecialIconClick: ((List<Product>) -> Unit)? = null,
+    showSpecialIcon: Boolean
 ) {
-    composable<ProductCatalogDestination> {
+    composable<ProductCatalogDestination> { backStep ->
         ProductCatalogScreen(
             modifier = Modifier,
             onFabConfigChange = onFabConfigChange,
+            showSpecialIcon = showSpecialIcon,
         )
     }
 }
@@ -26,5 +30,6 @@ fun NavGraphBuilder.productCatalogScreen(
 fun NavController.navigateToProductCatalogScreen() {
     navigate(ProductCatalogDestination) {
         launchSingleTop = true
+
     }
 }

@@ -12,7 +12,7 @@ data class UserEntity(
     val userId: UUID = UUID.randomUUID(),
     val name: String,
     val email: String,
-    val role: Role,
+    val role: String,
     val profilePictureUrl: String,
 )
 
@@ -21,7 +21,7 @@ fun UserEntity.toDomain(): User {
         userId = this.userId,
         name = this.name,
         email = this.email,
-        role = this.role,
+        role = Role.valueOf(this.role),
         profilePictureUrl = this.profilePictureUrl
     )
 }

@@ -6,17 +6,14 @@ import java.util.UUID
 data class Product(
     val productId: UUID = UUID.randomUUID(),
     val name: String,
-    val isPurchased: Boolean = false,
     val category: ProductCategory = ProductCategory.OTHER
 )
 
-fun Product.toEntity(listId: UUID? = null): ProductEntity {
+fun Product.toEntity(): ProductEntity {
     return ProductEntity(
         productId = this.productId,
         name = this.name,
-        isPurchased = this.isPurchased,
         category = this.category,
-        productListId = listId
     )
 }
 
