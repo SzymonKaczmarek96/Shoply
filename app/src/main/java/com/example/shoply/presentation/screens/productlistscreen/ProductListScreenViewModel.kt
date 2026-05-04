@@ -126,12 +126,6 @@ class ProductListScreenViewModel(
         }
     }
 
-    fun addProduct() {
-        val state = _state.value
-        val productName = state.inputDialog
-        val productCategory = state.selectedCategoryFromDialog
-    }
-
     //DIALOG
     fun onSelectedProductCategory(productCategory: ProductCategory) {
         _state.update { currentState ->

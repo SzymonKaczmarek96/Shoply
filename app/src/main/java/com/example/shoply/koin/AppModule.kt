@@ -2,6 +2,8 @@ package com.example.shoply.koin
 
 import androidx.room.Room
 import com.example.shoply.data.db.ShoplyDatabase
+import com.example.shoply.data.repository.ProductInListRepository
+import com.example.shoply.data.repository.ProductInListRepositoryImpl
 import com.example.shoply.data.repository.ProductListRepository
 import com.example.shoply.data.repository.ProductListRepositoryImpl
 import com.example.shoply.data.repository.ProductRepository
@@ -48,6 +50,9 @@ val appModule = module {
     }
     factory<ProductListRepository> {
         ProductListRepositoryImpl(get())
+    }
+    factory<ProductInListRepository> {
+        ProductInListRepositoryImpl(get())
     }
 
     // UseCases
