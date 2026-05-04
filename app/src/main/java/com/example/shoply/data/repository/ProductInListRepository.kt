@@ -8,7 +8,7 @@ interface ProductInListRepository {
 
     fun getAllProductInList(listId: UUID): Flow<List<ProductInList>>
 
-    suspend fun addProductInList(listId: UUID, productInList: ProductInList)
+    suspend fun addProductInList(productInList: ProductInList)
 
     suspend fun deleteProductInList(listId: UUID, productInList: ProductInList)
 

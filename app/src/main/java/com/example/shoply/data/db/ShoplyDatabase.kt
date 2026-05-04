@@ -5,6 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.shoply.data.converters.Converters
 import com.example.shoply.data.dao.ProductDao
+import com.example.shoply.data.dao.ProductInListDao
 import com.example.shoply.data.dao.ProductListDao
 import com.example.shoply.data.dao.UserDao
 import com.example.shoply.data.model.ProductEntity
@@ -24,4 +25,6 @@ abstract class ShoplyDatabase : RoomDatabase() {
     abstract fun productDao(): ProductDao
 
     abstract fun productListDao(): ProductListDao
+
+    abstract fun productInListDao(): ProductInListDao
 }

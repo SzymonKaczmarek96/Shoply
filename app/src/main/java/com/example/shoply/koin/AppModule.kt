@@ -8,6 +8,7 @@ import com.example.shoply.data.repository.ProductRepository
 import com.example.shoply.data.repository.ProductRepositoryImpl
 import com.example.shoply.domain.usecase.product.GetProductUseCase
 import com.example.shoply.domain.usecase.product.InsertProductUseCase
+import com.example.shoply.domain.usecase.productinlist.AddProductInListUseCase
 import com.example.shoply.domain.usecase.productinlist.GetProductInListUseCase
 import com.example.shoply.domain.usecase.productlist.AddProductListUseCase
 import com.example.shoply.domain.usecase.productlist.DeleteProductListUseCase
@@ -19,6 +20,7 @@ import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val appModule = module {
+    //viewModel
     viewModel {
         HomeScreenViewModel(
             getProductListUseCase = get(),
@@ -36,6 +38,7 @@ val appModule = module {
         ProductListScreenViewModel(
             addProductListUseCase = get(),
             getProductInList = get(),
+            addProductInListUseCase = get()
         )
     }
 
@@ -54,8 +57,10 @@ val appModule = module {
     factory { AddProductListUseCase(get()) }
     factory { DeleteProductListUseCase(get()) }
     factory { GetProductInListUseCase(get()) }
+    factory { AddProductInListUseCase(get()) }
 }
 
+//db
 val databaseModule = module {
     single {
         Room.databaseBuilder(
@@ -69,4 +74,5 @@ val databaseModule = module {
     single { get<ShoplyDatabase>().userDao() }
     single { get<ShoplyDatabase>().productDao() }
     single { get<ShoplyDatabase>().productListDao() }
+    single { get<ShoplyDatabase>().productInListDao() }
 }

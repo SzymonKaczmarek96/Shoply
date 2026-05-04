@@ -2,8 +2,10 @@ package com.example.shoply.presentation.screens.productlistscreen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.shoply.domain.model.Product
 import com.example.shoply.domain.model.ProductCategory
 import com.example.shoply.domain.model.ProductInList
+import com.example.shoply.domain.usecase.productinlist.AddProductInListUseCase
 import com.example.shoply.domain.usecase.productinlist.GetProductInListUseCase
 import com.example.shoply.domain.usecase.productlist.AddProductListUseCase
 import com.example.shoply.presentation.components.dialogs.UiDialog
@@ -17,7 +19,8 @@ import java.util.UUID
 
 class ProductListScreenViewModel(
     private val addProductListUseCase: AddProductListUseCase,
-    private val getProductInList: GetProductInListUseCase
+    private val getProductInList: GetProductInListUseCase,
+    private val addProductInListUseCase: AddProductInListUseCase,
 ) : ViewModel() {
 
     private var observeJob: Job? = null
@@ -76,6 +79,20 @@ class ProductListScreenViewModel(
                     )
                 }
             }
+        }
+    }
+
+    fun addProductInList(
+        productListId: UUID,
+        product: Product
+    ) {
+        viewModelScope.launch {
+            addProductInListUseCase.invoke(
+                ProductInList(
+                    productListId = productListId,
+                    product = product,
+                )
+            )
         }
     }
 

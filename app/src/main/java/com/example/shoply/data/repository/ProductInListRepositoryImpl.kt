@@ -3,6 +3,7 @@ package com.example.shoply.data.repository
 import com.example.shoply.data.dao.ProductInListDao
 import com.example.shoply.data.model.toDomain
 import com.example.shoply.domain.model.ProductInList
+import com.example.shoply.domain.model.toEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID
@@ -16,10 +17,8 @@ class ProductInListRepositoryImpl(
             .map { flowList -> flowList.map { it.toDomain() } }
     }
 
-    override suspend fun addProductInList(
-        listId: UUID,
-        productInList: ProductInList
-    ) {
+    override suspend fun addProductInList(productInList: ProductInList) {
+        productInListDao.insertProduct(productInList.toEntity())
     }
 
     override suspend fun deleteProductInList(

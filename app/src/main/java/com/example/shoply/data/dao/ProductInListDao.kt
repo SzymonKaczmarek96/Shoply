@@ -18,9 +18,6 @@ interface ProductInListDao {
     @Query(" SELECT * FROM products_in_lists WHERE productListId = :listId")
     fun getProductsForList(listId: UUID): Flow<List<ProductWithDetails>>
 
-    @Query("SELECT * FROM products_in_lists WHERE id = :productId")
-    suspend fun getProductById(productId: UUID): ProductInListEntity?
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProduct(product: ProductInListEntity)
 

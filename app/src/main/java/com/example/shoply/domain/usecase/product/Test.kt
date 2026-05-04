@@ -1,6 +1,6 @@
 package com.example.shoply.domain.usecase.product
 
-import com.example.shoply.domain.model.ProductCategory
+import com.example.shoply.domain.model.Product
 import com.example.shoply.domain.model.ProductInList
 import com.example.shoply.domain.model.ProductList
 import com.example.shoply.domain.model.Role
@@ -36,15 +36,17 @@ class Test {
     )
 
     val product1 = ProductInList(
-        name = "Milk",
         productListId = UUID.randomUUID(),
-        category = ProductCategory.OTHER,
+        product = Product(
+            name = "Product",
+        )
     )
 
     val product2 = ProductInList(
-        name = "Bread",
         productListId = UUID.randomUUID(),
-        category = ProductCategory.OTHER,
+        product = Product(
+            name = "Product",
+        )
     )
 
 //    val uuid: UUID = UUID.randomUUID(),
