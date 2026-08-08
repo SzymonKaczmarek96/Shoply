@@ -1,7 +1,6 @@
 package com.example.shoply.data.repository
 
 import com.example.shoply.domain.model.ProductList
-import com.example.shoply.domain.model.User
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
@@ -19,7 +18,4 @@ interface ProductListRepository {
 
     suspend fun deleteProductList(productList: ProductList)
 
-    suspend fun addMemberToList(listId: UUID, member: User)
-
-    suspend fun removeMemberFromList(listId: UUID)
 }

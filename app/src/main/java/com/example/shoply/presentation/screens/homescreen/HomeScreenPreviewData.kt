@@ -1,4 +1,4 @@
-package com.example.shoply.domain.usecase.product
+package com.example.shoply.presentation.screens.homescreen
 
 import com.example.shoply.domain.model.Product
 import com.example.shoply.domain.model.ProductInList
@@ -7,14 +7,7 @@ import com.example.shoply.domain.model.Role
 import com.example.shoply.domain.model.User
 import java.util.UUID
 
-class Test {
-
-    // val id: UUID = UUID.randomUUID(),
-    //    val name: String,
-    //    val email: String,
-    //    val role: Role,
-    //    val profilePictureUrl: String?,
-
+class HomeScreenPreviewData {
     val user1 = User(
         name = "Alice Johnson",
         email = "123@gmail.com",
@@ -48,12 +41,6 @@ class Test {
             name = "Product",
         )
     )
-
-//    val uuid: UUID = UUID.randomUUID(),
-//    val name: String,
-//    val description: String,
-//    val icon: Int,
-
 
     val productList = listOf(
         ProductList(

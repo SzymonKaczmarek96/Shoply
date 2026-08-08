@@ -7,7 +7,7 @@ import com.example.shoply.domain.model.Role
 import com.example.shoply.domain.model.User
 import com.example.shoply.domain.usecase.productlist.AddProductListUseCase
 import com.example.shoply.domain.usecase.productlist.DeleteProductListUseCase
-import com.example.shoply.domain.usecase.productlist.GetProductListUseCase
+import com.example.shoply.domain.usecase.productlist.GetProductListsWithDetailsUseCase
 import com.example.shoply.presentation.components.dialogs.UiDialog
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,9 +16,9 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 
 class HomeScreenViewModel(
-    private val getProductListUseCase: GetProductListUseCase,
     private val addProductListUseCase: AddProductListUseCase,
-    private val deleteProductListUseCase: DeleteProductListUseCase
+    private val deleteProductListUseCase: DeleteProductListUseCase,
+    private val getProductListsWithDetailsUseCase: GetProductListsWithDetailsUseCase,
 ) : ViewModel() {
 
 
@@ -45,6 +45,7 @@ class HomeScreenViewModel(
         when (_state.value.activeDialog) {
             UiDialog.INPUT_DIALOG -> createList()
             UiDialog.NONE -> Unit
+            UiDialog.MESSAGE_DIALOG -> Unit
         }
     }
 
@@ -105,7 +106,7 @@ class HomeScreenViewModel(
 
     init {
         viewModelScope.launch {
-            getProductListUseCase.invoke().collect { productLists ->
+            getProductListsWithDetailsUseCase.invoke().collect { productLists ->
                 _state.update { currentState ->
                     currentState.copy(
                         shopList = productLists

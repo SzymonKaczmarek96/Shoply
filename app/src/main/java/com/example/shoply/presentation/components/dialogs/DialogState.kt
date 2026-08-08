@@ -20,16 +20,19 @@ sealed interface DialogState {
         val message: String,
         val confirmButtonText: String,
         val firstInputValue: String = "",
+        val secondInputValue: String = "",
         val placeholderFirstInput: String? = null,
+        val placeholderSecondInput: String? = null,
         val selectedCategory: ProductCategory? = null,
         val dismissButtonText: String? = null,
         val errorMessage: String? = null,
+        val isQuantityRequired: Boolean? = false,
         val productCategories: List<ProductCategory> = emptyList(),
     ) : DialogState
 }
 
 enum class UiDialog {
-    NONE, INPUT_DIALOG,
+    NONE, INPUT_DIALOG, MESSAGE_DIALOG
 }
 
 enum class DialogType {

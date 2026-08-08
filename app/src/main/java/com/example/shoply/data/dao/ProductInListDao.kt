@@ -21,9 +21,44 @@ interface ProductInListDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProduct(product: ProductInListEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertProducts(products: List<ProductInListEntity>)
+
     @Update
     suspend fun updateProduct(product: ProductInListEntity)
 
     @Delete
     suspend fun deleteProduct(product: ProductInListEntity)
+
+    @Delete
+    suspend fun deleteProducts(products: List<ProductInListEntity>)
+
+    @Query(
+        """
+    SELECT EXISTS(
+        SELECT 1
+        FROM products_in_lists pil
+        WHERE pil.productListId = :listId
+        AND pil.productId = (
+            SELECT productId
+            FROM products
+            WHERE name = :productName
+        )
+    )
+"""
+    )
+    suspend fun existsProduct(listId: UUID, productName: String): Boolean
+
+    @Transaction
+    @Query(
+        """
+    SELECT pil.*
+    FROM products_in_lists as pil
+    INNER JOIN products as p
+    ON pil.productId = p.productId
+    WHERE pil.productListId = :listId
+    AND p.name LIKE '%' || :query || '%'
+"""
+    )
+    fun findContainingProducts(listId: UUID, query: String): List<ProductWithDetails>
 }

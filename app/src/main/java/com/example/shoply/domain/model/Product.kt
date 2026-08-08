@@ -13,7 +13,7 @@ fun Product.toEntity(): ProductEntity {
     return ProductEntity(
         productId = this.productId,
         name = this.name,
-        category = this.category,
+        category = this.category.name,
     )
 }
 

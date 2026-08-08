@@ -12,17 +12,11 @@ data class ProductList(
     val isComplete: Boolean
         get() = products.isNotEmpty() && products.all { it.isPurchased }
 
-    val totalProducts: Int
-        get() = products.size
-
-    val purchasedProducts: Int
-        get() = products.count { it.isPurchased }
-
     val totalQuantity: Int
-        get() = products.sumOf { it.quantity }
+        get() = products.count()
 
     val purchasedQuantity: Int
-        get() = products.filter { it.isPurchased }.sumOf { it.quantity }
+        get() = products.count { it.isPurchased }
 }
 
 fun ProductList.toEntity(): ProductListEntity {

@@ -3,19 +3,32 @@ package com.example.shoply.presentation.components.dialogs
 import androidx.compose.runtime.Composable
 
 @Composable
-fun UiDialog.toDialogInputState(
-    uiState: DialogState.InputDialog,
+fun UiDialog.dialogState(
+    dialogStateInputDialog: DialogState.InputDialog? = null,
+    dialogStateMessageDialog: DialogState.MessageDialog? = null,
 ): DialogState = when (this) {
     UiDialog.NONE -> DialogState.None
     UiDialog.INPUT_DIALOG -> DialogState.InputDialog(
-        title = uiState.title,
-        message = uiState.message,
-        placeholderFirstInput = uiState.placeholderFirstInput,
-        confirmButtonText = uiState.confirmButtonText,
-        dismissButtonText = uiState.dismissButtonText,
-        firstInputValue = uiState.firstInputValue,
-        errorMessage = uiState.errorMessage,
-        selectedCategory = uiState.selectedCategory,
-        productCategories = uiState.productCategories
+        title = dialogStateInputDialog?.title ?: "",
+        message = dialogStateInputDialog?.message ?: "",
+        placeholderFirstInput = dialogStateInputDialog?.placeholderFirstInput ?: "",
+        placeholderSecondInput = dialogStateInputDialog?.placeholderSecondInput ?: "",
+        confirmButtonText = dialogStateInputDialog?.confirmButtonText ?: "",
+        dismissButtonText = dialogStateInputDialog?.dismissButtonText,
+        firstInputValue = dialogStateInputDialog?.firstInputValue ?: "",
+        secondInputValue = dialogStateInputDialog?.secondInputValue ?: "",
+        errorMessage = dialogStateInputDialog?.errorMessage,
+        selectedCategory = dialogStateInputDialog?.selectedCategory,
+        productCategories = dialogStateInputDialog?.productCategories ?: emptyList(),
+        isQuantityRequired = dialogStateInputDialog?.isQuantityRequired
+    )
+
+    UiDialog.MESSAGE_DIALOG -> DialogState.MessageDialog(
+        title = dialogStateMessageDialog?.title ?: "",
+        message = dialogStateMessageDialog?.message ?: "",
+        type = DialogType.INFO,
+        confirmButtonText = dialogStateMessageDialog?.confirmButtonText ?: "Yes",
+        dismissButtonText = dialogStateMessageDialog?.dismissButtonText
     )
 }
+

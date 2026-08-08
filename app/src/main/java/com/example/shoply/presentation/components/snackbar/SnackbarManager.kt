@@ -24,7 +24,7 @@ object SnackbarManager {
         override val withDismissAction: Boolean,
         override val actionLabel: String? = null,
         override val message: String,
-        val type: SnackbarType
+        val type: SnackbarType,
     ) : SnackbarVisuals
 
     enum class SnackbarType {

@@ -27,6 +27,9 @@ import com.example.shoply.presentation.screens.productcatalogscreen.productCatal
 import com.example.shoply.presentation.screens.productlistscreen.ProductListDestination
 import com.example.shoply.presentation.screens.productlistscreen.navigateToProductListScreen
 import com.example.shoply.presentation.screens.productlistscreen.productListScreen
+import com.example.shoply.presentation.screens.settingscreen.SettingsDestination
+import com.example.shoply.presentation.screens.settingscreen.navigateToSettingsScreen
+import com.example.shoply.presentation.screens.settingscreen.settingScreen
 import com.myapp.shoply.R
 
 @Composable
@@ -39,6 +42,8 @@ fun MainScreen(
         navBackStackEntry?.destination?.hasRoute<HomeDestination>() == true
     val isProductScreen =
         navBackStackEntry?.destination?.hasRoute<ProductCatalogDestination>() == true
+    val isSettingsScreen =
+        navBackStackEntry?.destination?.hasRoute<SettingsDestination>() == true
 
     var fabConfig by remember { mutableStateOf(FabConfig()) }
     val snackbarHost = remember { SnackbarHostState() }
@@ -73,9 +78,10 @@ fun MainScreen(
             ShoplyBottomBar(
                 isHomeScreen = isHomeScreen,
                 isProductScreen = isProductScreen,
+                isSettingsScreen = isSettingsScreen,
                 onHomeClick = { navController.navigateToHomeScreen() },
-                onProductsClick = { navController.navigateToProductCatalogScreen() },
-                onSettingsClick = {}
+                onProductsClick = { navController.navigateToProductCatalogScreen(null) },
+                onSettingsClick = { navController.navigateToSettingsScreen() }
             )
         }
     ) { padding ->
@@ -96,16 +102,20 @@ fun MainScreen(
             productCatalogScreen(
                 onFabConfigChange = { fabConfig = it },
                 showSpecialIcon = cameFromProductList,
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
             )
             productListScreen(
                 onFabConfigChange = { fabConfig = it },
                 navigateToProductCatalog = {
-                    navController.navigateToProductCatalogScreen()
+                    navController.navigateToProductCatalogScreen(it)
                 },
             )
+            settingScreen(
+                onNavigateToPassword = { } //TODO
+            )
         }
-
-
     }
 }
 

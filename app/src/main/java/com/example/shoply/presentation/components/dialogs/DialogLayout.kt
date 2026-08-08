@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
@@ -29,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.shoply.domain.model.ProductCategory
@@ -41,6 +43,7 @@ fun DialogLayout(
     onDismiss: () -> Unit,
     onValueChange: ((String) -> Unit)? = null,
     onCategorySelected: ((ProductCategory) -> Unit)? = null,
+    onQuantityChange: ((String) -> Unit)? = null,
     onConfirm: (() -> Unit)? = null
 ) {
     DialogContent(
@@ -49,17 +52,19 @@ fun DialogLayout(
         onDismiss = onDismiss,
         onValueChange = onValueChange,
         onCategorySelected = onCategorySelected,
+        onQuantityChange = onQuantityChange,
         onConfirm = onConfirm
     )
 }
 
 @Composable
-fun DialogContent(
+private fun DialogContent(
     dialogState: DialogState,
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit,
     onValueChange: ((String) -> Unit)? = null,
     onCategorySelected: ((ProductCategory) -> Unit)? = null,
+    onQuantityChange: ((String) -> Unit)? = null,
     onConfirm: (() -> Unit)? = null
 ) {
     when (dialogState) {
@@ -80,9 +85,7 @@ fun DialogContent(
                 text = { Text(dialogState.message) },
                 confirmButton = {
                     TextButton(
-                        onClick = {
-                            onDismiss()
-                        }
+                        onClick = { onConfirm?.invoke() }
                     ) {
                         Text(dialogState.confirmButtonText)
                     }
@@ -96,11 +99,13 @@ fun DialogContent(
                 }
             )
         }
+
         is DialogState.InputDialog -> {
             InputDialogContent(
                 state = dialogState,
                 onDismiss = onDismiss,
                 onValueChange = { onValueChange?.invoke(it) },
+                onQuantityChange = { onQuantityChange?.invoke(it) },
                 onCategorySelected = { onCategorySelected?.invoke(it) },
                 onConfirm = { onConfirm?.invoke() }
             )
@@ -108,12 +113,12 @@ fun DialogContent(
     }
 }
 
-
 @Composable
 private fun InputDialogContent(
     state: DialogState.InputDialog,
     onDismiss: () -> Unit,
     onValueChange: ((String) -> Unit),
+    onQuantityChange: ((String) -> Unit),
     onCategorySelected: ((ProductCategory) -> Unit),
     onConfirm: (() -> Unit)
 ) {
@@ -157,6 +162,35 @@ private fun InputDialogContent(
                         categories = state.productCategories,
                         selectedCategory = state.selectedCategory,
                         onCategorySelected = { onCategorySelected.invoke(it) }
+                    )
+                }
+
+                if (state.isQuantityRequired == true) {
+                    Spacer(modifier = Modifier.padding(UiDim.PADDING_MEDIUM))
+                    Text(
+                        text = "Set Quantity:"
+                    )
+                    OutlinedTextField(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = UiDim.PADDING_MEDIUM)
+                            .background(
+                                color = Color(0xFFF9FAFB),
+                                shape = RoundedCornerShape(12.dp)
+                            ),
+                        value = state.secondInputValue,
+                        maxLines = 1,
+                        onValueChange = { onQuantityChange(it) },
+                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        placeholder = {
+                            Text(state.placeholderSecondInput ?: "")
+                        }
                     )
                 }
 
@@ -265,7 +299,7 @@ private fun AlertDialogLayoutPreview() {
         modifier = Modifier,
         onDismiss = {},
 
-    )
+        )
 }
 
 @Preview
@@ -282,7 +316,8 @@ private fun InputDialogLayoutPreview() {
         onDismiss = {},
         onValueChange = {},
         onCategorySelected = { },
-        onConfirm = {}
+        onConfirm = {},
+        onQuantityChange = {}
     )
 }
 

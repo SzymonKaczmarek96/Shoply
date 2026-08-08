@@ -16,7 +16,7 @@ fun User.toEntity(): UserEntity {
         userId = this.userId,
         name = this.name,
         email = this.email,
-        role = this.role,
+        role = this.role.name,
         profilePictureUrl = this.profilePictureUrl ?: ""
     )
 }

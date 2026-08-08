@@ -5,10 +5,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import kotlinx.serialization.Serializable
 
-//change selected item in bottomBarScreen
-// split screen which are using bottom bar and top bar from login screen
-
-
 @Serializable
 data object LoginNavGraph
 

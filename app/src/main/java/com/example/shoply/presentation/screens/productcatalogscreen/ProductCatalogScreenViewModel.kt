@@ -4,12 +4,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.shoply.domain.model.Product
 import com.example.shoply.domain.model.ProductCategory
+import com.example.shoply.domain.model.ProductInList
+import com.example.shoply.domain.usecase.UseCaseResult
+import com.example.shoply.domain.usecase.product.DeleteProductsUseCase
 import com.example.shoply.domain.usecase.product.GetProductUseCase
 import com.example.shoply.domain.usecase.product.InsertProductUseCase
+import com.example.shoply.domain.usecase.product.UpdateProductUseCase
+import com.example.shoply.domain.usecase.productinlist.AddProductsInListUseCase
+import com.example.shoply.domain.usecase.productinlist.GetProductInListUseCase
 import com.example.shoply.presentation.components.dialogs.UiDialog
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -17,8 +26,14 @@ import java.util.UUID
 class ProductCatalogScreenViewModel(
     private val getProductUseCase: GetProductUseCase,
     private val insertProductUseCase: InsertProductUseCase,
+    private val addProductsInListUseCase: AddProductsInListUseCase,
+    private val getProductInList: GetProductInListUseCase,
+    private val deleteProductUseCase: DeleteProductsUseCase,
+    private val updateProductUseCase: UpdateProductUseCase,
+    private val idDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val stateInit: State = State()
 ) : ViewModel() {
-    private val _state = MutableStateFlow(State())
+    private val _state = MutableStateFlow(stateInit)
     val state: StateFlow<State> = _state.asStateFlow()
 
     data class State(
@@ -34,7 +49,13 @@ class ProductCatalogScreenViewModel(
         val dialogInput: String = "",
         val dialogError: String? = null,
         val userMessage: String? = null,
-        val isLastScreenProductListScreen: Boolean? = false
+        val isLastScreenProductListScreen: Boolean? = false,
+        val transferProductList: List<ProductInList>? = emptyList(),
+        val isUpdateDialog: Boolean = false,
+        val isError: Boolean = false,
+        val isSuccess: Boolean = false,
+        val isLoading: Boolean = false,
+        val selectedProductId: UUID? = null,
     ) {
         val items: List<Product> =
             if (selectedCategoryFromFilterCategory == ProductCategory.ALL) {
@@ -45,21 +66,37 @@ class ProductCatalogScreenViewModel(
     }
 
     // businnes logic
+    fun addSelectedProductList(listId: UUID) {
+        viewModelScope.launch(idDispatcher) {
 
-    fun passSelectedProductList(): List<Product> {
-        return _state.value.allProducts
-            .filter { _state.value.selectedIds.contains(it.productId) }
+            val getAllProductsInList = getProductInList.invoke(listId = listId).first()
+
+            _state.update { currentState ->
+                currentState.copy(
+                    transferProductList = getAllProductsInList
+                )
+            }
+
+            val selectedProducts = _state.value.selectedIds
+            val transferredProducts =
+                _state.value.transferProductList?.map { it.product } ?: emptyList()
+            val notExistingProduct =
+                selectedProducts.filter { uuid -> transferredProducts.none { it.productId == uuid } }
+
+            val productsForAdd =
+                _state.value.allProducts.filter { product -> notExistingProduct.any { it == product.productId } }
+
+            val createProductInList = productsForAdd.map {
+                ProductInList(
+                    productListId = listId,
+                    product = it,
+                )
+            }
+            addProductsInListUseCase.invoke(createProductInList)
+        }
     }
 
-    fun onDeleteClick() {
-
-    }
-
-    fun selectProductFromProductsCatalog() {
-
-    }
-
-    fun validateLastScreen(showSpecialIcon: Boolean) {
+    fun setIsLastScreen(showSpecialIcon: Boolean) {
         _state.update { currentState ->
             currentState.copy(
                 isLastScreenProductListScreen = showSpecialIcon
@@ -67,8 +104,56 @@ class ProductCatalogScreenViewModel(
         }
     }
 
+    fun deleteProducts() {
+
+        viewModelScope.launch(idDispatcher) {
+            val selectedProducts = _state.value.selectedIds
+            val foundedProducts =
+                _state.value.allProducts.filter { product -> selectedProducts.contains(product.productId) }
+
+            _state.update { it.loading() }
+
+            when (val result = deleteProductUseCase(foundedProducts)) {
+                is UseCaseResult.Success ->
+                    _state.update { it.success(result.data) }
+
+                is UseCaseResult.Error ->
+                    _state.update { it.error(result.error) }
+
+                else -> {
+                    _state.update { it.error("Something went wrong") }
+                }
+            }
+        }
+    }
 
     //dialog operation
+    fun confirmInput() {
+        val isUpdateDialog = _state.value.isUpdateDialog
+        if (isUpdateDialog) {
+            updateProduct()
+            return
+        }
+        addProduct()
+
+    }
+
+    fun selectProduct(productId: UUID) {
+        _state.update { currentState ->
+            currentState.copy(
+                selectedProductId = productId
+            )
+        }
+    }
+
+    fun setDialogTypeOnUpdate(isUpdateDialog: Boolean) {
+        _state.update { currentState ->
+            currentState.copy(
+                isUpdateDialog = isUpdateDialog
+            )
+        }
+    }
+
     fun onCreateDialog() {
         _state.update { currentState ->
             currentState.copy(activeDialog = UiDialog.INPUT_DIALOG)
@@ -88,14 +173,12 @@ class ProductCatalogScreenViewModel(
     }
 
     fun dismissDialog() {
-        _state.update { it.copy(activeDialog = UiDialog.NONE) }
-    }
-
-    //snackbar
-    fun onMessageShown() {
-        _state.update { currentState ->
-            currentState.copy(
-                userMessage = null
+        _state.update {
+            it.copy(
+                activeDialog = UiDialog.NONE,
+                selectedCategoryFromDialog = ProductCategory.ALL,
+                dialogInput = "",
+                dialogError = null,
             )
         }
     }
@@ -113,32 +196,6 @@ class ProductCatalogScreenViewModel(
             currentState.copy(
                 selectedIds = currentState.selectedIds + setOf(productId)
             )
-        }
-    }
-
-    fun addProduct(
-        productName: String,
-        categoryName: String,
-        onSuccess: () -> Unit,
-    ) {
-        when {
-            productNameIsBlank(productName) -> {}
-            productNameIsTooLong(productName) -> {}
-            productNameAlreadyExists(productName) -> {}
-            else -> {
-                val category = mapToCategory(categoryName)
-
-                _state.update { currentState ->
-                    currentState.copy(
-                        allProducts = currentState.allProducts,
-                        existingProductCategory =
-                            if (!hasCategory(categoryName)) currentState.existingProductCategory + category
-                            else currentState.existingProductCategory,
-                        userMessage = "Item added successfully"
-                    )
-                }
-                onSuccess()
-            }
         }
     }
 
@@ -164,74 +221,105 @@ class ProductCatalogScreenViewModel(
         }
     }
 
-    fun onDialogConfirm() {
-        val error = validateProductName(_state.value.dialogInput)
-        val errorText = when (error) {
-            ProductNameValidationError.BLANK -> "Product name cannot be blank"
-            ProductNameValidationError.TOO_LONG -> "Product name cannot be longer than 30 characters"
-            ProductNameValidationError.ALREADY_EXISTS -> "Product with this name already exists"
-            null -> null
-        }
-
-        if (error != null) {
-            _state.update {
-                it.copy(
-                    dialogError = errorText
-                )
-            }
-            return
-        }
-        addProduct(
-            productName = _state.value.dialogInput,
-            categoryName = _state.value.selectedCategoryFromDialog.name,
-
-            onSuccess = {
-                dismissDialog()
-            }
-        )
-    }
-
     // init
     init {
         viewModelScope.launch {
-            getProductUseCase.invoke().collect {
+            getProductUseCase.invoke()
+                .collect {
                 val existingProductCategory: Set<ProductCategory> =
                     LinkedHashSet(it.map { p -> p.category } + ProductCategory.ALL)
                 _state.update { currentState ->
                     currentState.copy(
                         allProducts = it,
                         existingProductCategory = existingProductCategory,
-                        productCategories = ProductCategory.entries
+                        productCategories = ProductCategory.entries,
                     )
                 }
             }
-            insertProductUseCase.invoke()
         }
     }
 
     // private
+    private fun updateProduct() {
+        viewModelScope.launch(idDispatcher) {
+            val product =
+                _state.value.allProducts.find { it.productId == _state.value.selectedProductId }
+                    ?: return@launch
+            val updatedProduct = product.copy(
+                name = _state.value.dialogInput,
+                category = _state.value.selectedCategoryFromDialog
+            )
+            val result = updateProductUseCase.invoke(updatedProduct)
+            when (result) {
+                is UseCaseResult.Success -> {
+                    onProductSaved(
+                        onSuccess = { dismissDialog() },
+                    )
+                }
 
-    private fun generateProductCategories() {
-    }
+                is UseCaseResult.Error -> {
+                    errorResult(result)
+                }
 
-    private fun validateProductName(name: String): ProductNameValidationError? {
-        return when {
-            name.isBlank() -> ProductNameValidationError.BLANK
-            name.length >= 30 -> ProductNameValidationError.TOO_LONG
-            state.value.allProducts.any {
-                it.name.equals(name, ignoreCase = true)
-            } -> ProductNameValidationError.ALREADY_EXISTS
-
-            else -> null
+                is UseCaseResult.Loading -> {
+                    _state.update { it.loading() }
+                }
+            }
         }
     }
 
-    private fun productNameIsBlank(productName: String) = productName.isBlank()
+    private fun addProduct() {
+        viewModelScope.launch {
+            val product = Product(
+                name = _state.value.dialogInput,
+                category = _state.value.selectedCategoryFromDialog
+            )
 
-    private fun productNameIsTooLong(productName: String) = productName.length >= 30
+            val result = insertProductUseCase.invoke(product)
+            when (result) {
+                is UseCaseResult.Success -> {
+                    onProductSaved(
+                        onSuccess = { dismissDialog() },
+                    )
+                }
 
-    private fun productNameAlreadyExists(productName: String) =
-        state.value.allProducts.any { it.name.lowercase() == productName.lowercase() }
+                is UseCaseResult.Error -> {
+                    errorResult(result)
+                }
+
+                UseCaseResult.Loading -> {
+                    _state.update { it.loading() }
+                }
+            }
+        }
+    }
+
+    private fun onProductSaved(
+        onSuccess: () -> Unit,
+    ) {
+        val mappedCategory = mapToCategory(_state.value.selectedCategoryFromDialog.name)
+        _state.update { currentState ->
+            currentState
+                .success("Successfully saved product")
+                .copy(
+                    existingProductCategory =
+                        if (!hasCategory(mappedCategory.name)) currentState.existingProductCategory + mappedCategory
+                        else currentState.existingProductCategory,
+                )
+        }
+        onSuccess()
+    }
+
+    private fun errorResult(result: UseCaseResult.Error<Throwable>) {
+        _state.update {
+            it.copy(
+                isLoading = false,
+                isSuccess = false,
+                isError = true,
+                dialogError = result.error.message
+            )
+        }
+    }
 
     private fun mapToCategory(value: String): ProductCategory {
         return ProductCategory.entries.first { it.name == value }
@@ -239,10 +327,29 @@ class ProductCatalogScreenViewModel(
 
     private fun hasCategory(categoryName: String) = _state.value
         .existingProductCategory.any { it.name == categoryName }
+
+    // UseCaseResultHandling
+
+    fun State.loading() = copy(
+        isLoading = true,
+        isSuccess = false,
+        isError = false
+    )
+
+    fun State.success(message: String? = null) = copy(
+        isLoading = false,
+        isSuccess = true,
+        isError = false,
+        userMessage = message
+    )
+
+    fun State.error(message: String) = copy(
+        isLoading = false,
+        isSuccess = false,
+        isError = true,
+        userMessage = message
+    )
+
+
 }
 
-enum class ProductNameValidationError {
-    BLANK,
-    TOO_LONG,
-    ALREADY_EXISTS
-}

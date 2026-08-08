@@ -6,29 +6,36 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.example.shoply.domain.model.Product
+import androidx.navigation.toRoute
 import kotlinx.serialization.Serializable
+import java.util.UUID
 
 @Serializable
-data object ProductCatalogDestination
+data class ProductCatalogDestination(
+    val listId: String? = null
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.productCatalogScreen(
     onFabConfigChange: (FabConfig) -> Unit,
-    onSpecialIconClick: ((List<Product>) -> Unit)? = null,
+    onNavigateBack: () -> Unit,
     showSpecialIcon: Boolean
 ) {
     composable<ProductCatalogDestination> { backStep ->
+        val destination = backStep.toRoute<ProductCatalogDestination>()
+        val listId = destination.listId?.let { UUID.fromString(it) }
         ProductCatalogScreen(
             modifier = Modifier,
             onFabConfigChange = onFabConfigChange,
             showSpecialIcon = showSpecialIcon,
+            onNavigateBack = onNavigateBack,
+            listId = listId
         )
     }
 }
 
-fun NavController.navigateToProductCatalogScreen() {
-    navigate(ProductCatalogDestination) {
+fun NavController.navigateToProductCatalogScreen(listId: UUID?) {
+    navigate(route = ProductCatalogDestination(listId = listId.toString())) {
         launchSingleTop = true
 
     }

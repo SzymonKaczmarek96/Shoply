@@ -27,6 +27,7 @@ data class ShoplyBottomBarItem(
 fun ShoplyBottomBar(
     isProductScreen: Boolean,
     isHomeScreen: Boolean,
+    isSettingsScreen: Boolean,
     onHomeClick: () -> Unit,
     onProductsClick: () -> Unit,
     onSettingsClick: () -> Unit,
@@ -47,7 +48,8 @@ fun ShoplyBottomBar(
         ShoplyBottomBarItem(
             title = "Settings",
             icon = Icons.Default.Settings,
-            onClick = onSettingsClick
+            onClick = onSettingsClick,
+            isSelected = isSettingsScreen
         )
     )
 
@@ -77,6 +79,7 @@ fun ShoplyBottomBarPreview() {
     ShoplyBottomBar(
         isHomeScreen = true,
         isProductScreen = false,
+        isSettingsScreen = false,
         onHomeClick = {},
         onProductsClick = {},
         onSettingsClick = {}

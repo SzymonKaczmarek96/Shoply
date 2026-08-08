@@ -16,6 +16,11 @@ coil = "2.7.0"
 navigation = "2.8.4"
 serialization = "1.5.1"
 material = "1.6.8"
+mockk = "1.13.8"
+kotlinx-coroutines-test = "1.7.3"
+koin-test = "3.5.0"
+koin-test-junit4 = "3.5.0"
+turbine = "1.0.0"
 
 
 [libraries]
@@ -43,6 +48,12 @@ coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
 serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "material" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines-test" }
+koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin-test" }
+koin-test-junit4 = { module = "io.insert-koin:koin-test-junit4", version.ref = "koin-test-junit4" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -26,6 +26,7 @@ class ProductRepositoryImpl(
         productDao.updateProduct(
             productId = productEntity.productId,
             name = productEntity.name,
+            category = productEntity.category,
         )
     }
 
@@ -34,6 +35,14 @@ class ProductRepositoryImpl(
         productsEntity.forEach {
             productDao.deleteProduct(it.productId)
         }
+    }
+
+    override suspend fun getOrCreateProduct(product: Product): Product {
+        return productDao.getOrCreate(product.toEntity()).toDomain()
+    }
+
+    override suspend fun existsByName(name: String): Boolean {
+        return productDao.existsByName(name)
     }
 
 

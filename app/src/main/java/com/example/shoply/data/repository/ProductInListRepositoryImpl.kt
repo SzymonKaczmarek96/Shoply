@@ -21,10 +21,35 @@ class ProductInListRepositoryImpl(
         productInListDao.insertProduct(productInList.toEntity())
     }
 
-    override suspend fun deleteProductInList(
-        listId: UUID,
-        productInList: ProductInList
-    ) {
-        TODO("Not yet implemented")
+    override suspend fun addProductsInList(productsInList: List<ProductInList>) {
+        productInListDao.insertProducts(productsInList.map { it.toEntity() })
     }
+
+    override suspend fun deleteProductInList(productInList: ProductInList) {
+        productInListDao.deleteProduct(productInList.toEntity())
+    }
+
+    override suspend fun updateProductInList(productInList: ProductInList) {
+        productInListDao.updateProduct(productInList.toEntity())
+    }
+
+    override suspend fun deleteProductsInList(productsInList: List<ProductInList>) {
+        productInListDao.deleteProducts(productsInList.map { it.toEntity() })
+    }
+
+    override suspend fun findContainingProducts(listId: UUID, letter: String): List<ProductInList> {
+        return productInListDao.findContainingProducts(
+            listId = listId,
+            query = letter
+        ).map { it.toDomain() }
+    }
+
+    override suspend fun isExistsProductInList(
+        listId: UUID,
+        productName: String
+    ): Boolean {
+        return productInListDao.existsProduct(listId, productName)
+    }
+
+
 }

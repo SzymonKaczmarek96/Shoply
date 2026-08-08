@@ -2,6 +2,7 @@ package com.example.shoply.presentation.screens.productlistscreen
 
 import FabConfig
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -43,35 +45,49 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.shoply.domain.model.Product
 import com.example.shoply.domain.model.ProductCategory
+import com.example.shoply.domain.model.ProductInList
 import com.example.shoply.presentation.components.dialogs.DialogLayout
 import com.example.shoply.presentation.components.dialogs.DialogState
-import com.example.shoply.presentation.components.dialogs.toDialogInputState
+import com.example.shoply.presentation.components.dialogs.dialogState
+import com.example.shoply.presentation.components.snackbar.SnackbarManager
 import com.example.shoply.presentation.mapper.ProductCategoryIconMapper
 import com.example.shoply.presentation.utils.UiDim
-import org.koin.compose.koinInject
+import org.koin.androidx.compose.koinViewModel
 import java.util.UUID
 
+// you need to clarify topic with add product in list
 @Composable
 @ExperimentalMaterial3Api
 fun ProductListScreen(
-    viewModel: ProductListScreenViewModel = koinInject(),
+    viewModel: ProductListScreenViewModel = koinViewModel(),
     listId: UUID?,
     onFabClickChange: (FabConfig) -> Unit,
-    onShoppingIconClick: () -> Unit,
+    onShoppingIconClick: (UUID) -> Unit,
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
-    val dialogState = uiState.activeDialog.toDialogInputState(
-        uiState = DialogState.InputDialog(
+    val dialogInputState = uiState.activeDialog.dialogState(
+        dialogStateInputDialog = DialogState.InputDialog(
             title = "Add Product",
             message = "Enter the product name and select a category",
             placeholderFirstInput = "Enter product name",
             confirmButtonText = "Add",
             dismissButtonText = "Cancel",
-            firstInputValue = uiState.inputDialog ?: "",
+            firstInputValue = uiState.dialogInput ?: "",
+            secondInputValue = uiState.quantityInputDialog ?: "",
             errorMessage = uiState.errorMessageDialog,
             selectedCategory = uiState.selectedCategoryFromDialog,
-            productCategories = uiState.productCategories ?: emptyList()
+            productCategories = uiState.productCategories ?: emptyList(),
+            isQuantityRequired = true,
+        )
+    )
+
+    val dialogMessageState = uiState.activeDialog.dialogState(
+        dialogStateMessageDialog = DialogState.MessageDialog(
+            title = "Confirmation",
+            message = "Are you sure to delete all purchased items??",
+            confirmButtonText = "Yes",
+            dismissButtonText = "No",
         )
     )
     LaunchedEffect(Unit) {
@@ -79,6 +95,7 @@ fun ProductListScreen(
             FabConfig(
                 visible = true,
                 onClick = {
+                    viewModel.changeDialogStateTypeOnInput()
                     viewModel.onCreateDialog()
                 }
             )
@@ -88,18 +105,43 @@ fun ProductListScreen(
         viewModel.updateListId(listId)
     }
 
+    LaunchedEffect(uiState.userMessage) {
+        uiState.userMessage?.let {
+            SnackbarManager.showSnackbar(
+                snackbarEvent = SnackbarManager.SnackbarEvent(
+                    message = it,
+                    type = SnackbarManager.SnackbarType.SUCCESS,
+                    duration = SnackbarDuration.Short,
+                    withDismissAction = true,
+                )
+            )
+            viewModel.onMessageShown()
+        }
+    }
+
 
     RootView(
         modifier = Modifier,
         uiState = uiState,
         onCheckboxClick = { uuid, boolean ->
-            viewModel.updateSelectedIds(uuid)
+            viewModel.updateProductInList(productId = uuid)
         },
-        onShoppingIconClick = onShoppingIconClick
+        onSearchQuery = {
+            viewModel.findProductByProductName(it)
+        },
+        onShoppingIconClick = onShoppingIconClick,
+        onDeleteIconCLick = {
+            viewModel.deleteProductInList(it)
+        },
+        onTopBarDeleteClick = {
+            viewModel.changeDialogStateTypeOnMessage()
+            viewModel.showConfirmationDialog()
+        }
     )
 
     DialogLayout(
-        dialogState = dialogState,
+        dialogState = if (uiState.isInputDialogState) dialogInputState
+        else dialogMessageState,
         modifier = Modifier,
         onDismiss = {
             viewModel.onDismissDialog()
@@ -107,15 +149,23 @@ fun ProductListScreen(
         onValueChange = {
             viewModel.onInputChange(it)
         },
+        onQuantityChange = {
+            viewModel.onQuantityChange(it)
+        },
         onCategorySelected = {
             viewModel.onSelectedProductCategory(it)
         },
         onConfirm = {
-            viewModel.addProduct()
+            if (listId == null) return@DialogLayout
+            if (uiState.isInputDialogState) {
+                viewModel.addProductInList(listId)
+            } else {
+                viewModel.deletePurchasedProducts()
+                viewModel.onDismissDialog()
+            }
         }
     )
 }
-
 
 @Composable
 @ExperimentalMaterial3Api
@@ -124,14 +174,18 @@ private fun RootView(
     uiState: ProductListScreenViewModel.State,
     onCheckboxClick: (UUID, Boolean) -> Unit = { _, _ -> },
     onSearchQuery: (String) -> Unit = {},
-    onShoppingIconClick: () -> Unit,
+    onShoppingIconClick: ((UUID) -> Unit),
+    onDeleteIconCLick: ((UUID) -> Unit),
+    onTopBarDeleteClick: () -> Unit,
 ) {
     ProductListLayout(
         modifier = modifier,
         uiState = uiState,
         onCheckboxClick = onCheckboxClick,
         onSearchQuery = onSearchQuery,
-        onShoppingIconClick = onShoppingIconClick
+        onShoppingIconClick = onShoppingIconClick,
+        onDeleteIconCLick = onDeleteIconCLick,
+        onTopBarDeleteClick = onTopBarDeleteClick
     )
 }
 
@@ -142,7 +196,9 @@ private fun ProductListLayout(
     uiState: ProductListScreenViewModel.State,
     onCheckboxClick: (UUID, Boolean) -> Unit = { _, _ -> },
     onSearchQuery: (String) -> Unit = {},
-    onShoppingIconClick: () -> Unit,
+    onShoppingIconClick: ((UUID) -> Unit),
+    onDeleteIconCLick: ((UUID) -> Unit),
+    onTopBarDeleteClick: () -> Unit,
 ) {
 
     var value by remember { mutableStateOf("") }
@@ -175,7 +231,7 @@ private fun ProductListLayout(
                         modifier = Modifier
                             .size(UiDim.ICON_SIZE),
                         onClick = {
-                            onShoppingIconClick()
+                            onShoppingIconClick(uiState.listId ?: UUID.fromString(""))
                         }
                     ) {
                         Icon(
@@ -201,7 +257,7 @@ private fun ProductListLayout(
                     IconButton(
                         modifier = Modifier
                             .size(32.dp),
-                        onClick = {}
+                        onClick = { onTopBarDeleteClick() }
                     ) {
                         Icon(
                             imageVector = Icons.Default.Delete,
@@ -252,7 +308,8 @@ private fun ProductListLayout(
             }
             ProductCatalogItem(
                 uiState = uiState,
-                onCheckboxClick = onCheckboxClick
+                onCheckboxClick = onCheckboxClick,
+                onDeleteIconCLick = onDeleteIconCLick
             )
         }
     }
@@ -263,6 +320,7 @@ private fun ProductListLayout(
 private fun ProductCatalogItem(
     uiState: ProductListScreenViewModel.State,
     onCheckboxClick: (UUID, Boolean) -> Unit = { _, _ -> },
+    onDeleteIconCLick: ((UUID) -> Unit)
 ) {
     LazyColumn {
         uiState.groupedProduct?.forEach { (category, product) ->
@@ -272,7 +330,7 @@ private fun ProductCatalogItem(
             items(
                 items = product,
             ) { item ->
-
+                val itemQuantity = item.quantity.toString()
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -289,7 +347,7 @@ private fun ProductCatalogItem(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
-                            checked = uiState.selectedIds?.contains(item.id) == true,
+                            checked = item.isPurchased,
                             onCheckedChange = {
                                 onCheckboxClick.invoke(
                                     item.id, it
@@ -308,8 +366,27 @@ private fun ProductCatalogItem(
                             fontWeight = FontWeight.Normal,
                             color = Color(0xff111827)
                         )
+                        if (itemQuantity != "1") {
+                            Text(
+                                text = " $itemQuantity",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Normal,
+                                textDecoration = if (item.isPurchased) TextDecoration.LineThrough else null,
+                                color = Color(0xff111827)
+                            )
+                        }
                     }
-                    Box {
+                    Row {
+                        Icon(
+                            modifier = Modifier.clickable(
+                                onClick = {
+                                    onDeleteIconCLick.invoke(item.id)
+                                },
+                            ),
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Product Icon",
+                            tint = Color.Unspecified
+                        )
                         Icon(
                             modifier = Modifier
                                 .padding(horizontal = UiDim.PADDING_LARGE),
@@ -368,7 +445,9 @@ fun ProductCatalogScreenPreview() {
         uiState = ProductListScreenViewModel.State(),
         onCheckboxClick = { _, _ -> },
         onSearchQuery = {},
-        onShoppingIconClick = {}
+        onShoppingIconClick = {},
+        onDeleteIconCLick = {},
+        onTopBarDeleteClick = {}
     )
 }
 
@@ -376,7 +455,22 @@ fun ProductCatalogScreenPreview() {
 @Composable
 @ExperimentalMaterial3Api
 fun ProductCatalogItemPreview() {
+    ProductCatalogItem(
+        uiState = ProductListScreenViewModel.State(
+            allProducts = listOf(
+                ProductInList(
+                    productListId = UUID.randomUUID(),
+                    product = Product(
+                        name = "Bread",
+                        category = ProductCategory.HOUSEHOLD
+                    ),
 
+                    )
+            )
+        ),
+        onCheckboxClick = { _, _ -> },
+        onDeleteIconCLick = {}
+    )
     val sampleProducts = listOf(
         Product(
             name = "Bread",

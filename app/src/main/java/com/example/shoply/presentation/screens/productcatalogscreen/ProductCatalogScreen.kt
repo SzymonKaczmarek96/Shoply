@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PlaylistAddCheckCircle
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
@@ -48,7 +49,7 @@ import com.example.shoply.domain.model.Product
 import com.example.shoply.domain.model.ProductCategory
 import com.example.shoply.presentation.components.dialogs.DialogLayout
 import com.example.shoply.presentation.components.dialogs.DialogState
-import com.example.shoply.presentation.components.dialogs.toDialogInputState
+import com.example.shoply.presentation.components.dialogs.dialogState
 import com.example.shoply.presentation.components.snackbar.SnackbarManager
 import com.example.shoply.presentation.mapper.ProductCategoryIconMapper
 import com.example.shoply.presentation.utils.UiDim
@@ -59,19 +60,20 @@ import java.util.UUID
 @ExperimentalMaterial3Api
 fun ProductCatalogScreen(
     modifier: Modifier,
-    viewModel: ProductCatalogScreenViewModel =
-        koinViewModel(),
+    viewModel: ProductCatalogScreenViewModel = koinViewModel(),
     onFabConfigChange: (FabConfig) -> Unit,
+    onNavigateBack: () -> Unit,
     showSpecialIcon: Boolean,
+    listId: UUID?,
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
-    val dialogState = uiState.activeDialog.toDialogInputState(
-        uiState = DialogState.InputDialog(
-            title = "Add Product",
+    val inputDialogState = uiState.activeDialog.dialogState(
+        dialogStateInputDialog = DialogState.InputDialog(
+            title = if (uiState.isUpdateDialog) "Update Product" else "Add Product",
             message = "Enter the product name and select a category",
             placeholderFirstInput = "Enter product name",
-            confirmButtonText = "Add",
+            confirmButtonText = if (uiState.isUpdateDialog) "Update" else "Add",
             dismissButtonText = "Cancel",
             firstInputValue = uiState.dialogInput,
             errorMessage = uiState.dialogError,
@@ -80,17 +82,17 @@ fun ProductCatalogScreen(
         )
     )
 
-
     LaunchedEffect(Unit) {
         onFabConfigChange(
             FabConfig(
                 visible = true,
                 onClick = {
+                    viewModel.setDialogTypeOnUpdate(false)
                     viewModel.onCreateDialog()
                 }
             )
         )
-        viewModel.validateLastScreen(showSpecialIcon)
+        viewModel.setIsLastScreen(showSpecialIcon)
     }
 
     LaunchedEffect(uiState.userMessage) {
@@ -98,12 +100,12 @@ fun ProductCatalogScreen(
             SnackbarManager.showSnackbar(
                 snackbarEvent = SnackbarManager.SnackbarEvent(
                     message = it,
-                    type = SnackbarManager.SnackbarType.SUCCESS,
+                    type = if (!uiState.isError) SnackbarManager.SnackbarType.SUCCESS else
+                        SnackbarManager.SnackbarType.ERROR,
                     duration = SnackbarDuration.Short,
-                    withDismissAction = false,
+                    withDismissAction = true,
                 )
             )
-            viewModel.onMessageShown()
         }
     }
 
@@ -117,16 +119,28 @@ fun ProductCatalogScreen(
         onCategoryClick = {
             viewModel.onCategorySelected(it)
         },
-
+        onSelectedItemClick = {
+            viewModel.addSelectedProductList(listId ?: UUID.fromString(""))
+            onNavigateBack()
+        },
+        onDeleteIconClick = {
+            viewModel.deleteProducts()
+        },
+        onEditClick = { productId ->
+            viewModel.selectProduct(productId)
+            viewModel.setDialogTypeOnUpdate(true)
+            viewModel.onCreateDialog()
+        }
     )
 
     DialogLayout(
-        dialogState = dialogState,
+        dialogState = inputDialogState,
         modifier = Modifier,
         onDismiss = { viewModel.dismissDialog() },
         onValueChange = { viewModel.onDialogInputChange(it) },
         onCategorySelected = viewModel::onSelectedProductCategory,
-        onConfirm = viewModel::onDialogConfirm
+        onConfirm = { viewModel.confirmInput() }
+
     )
 }
 
@@ -137,14 +151,20 @@ private fun RootView(
     uiState: ProductCatalogScreenViewModel.State,
     onCheckboxClick: (UUID) -> Unit,
     onSearchQuery: (String) -> Unit,
-    onCategoryClick: (ProductCategory) -> Unit
+    onCategoryClick: (ProductCategory) -> Unit,
+    onSelectedItemClick: () -> Unit,
+    onDeleteIconClick: () -> Unit,
+    onEditClick: (UUID) -> Unit,
 ) {
     ProductCatalogLayout(
         modifier = modifier,
         uiState = uiState,
         onCheckboxClick = onCheckboxClick,
         onSearchQuery = onSearchQuery,
-        onCategoryClick = onCategoryClick
+        onCategoryClick = onCategoryClick,
+        onSelectedItemClick = onSelectedItemClick,
+        onDeleteIconClick = onDeleteIconClick,
+        onEditClick = onEditClick
     )
 }
 
@@ -155,7 +175,10 @@ private fun ProductCatalogLayout(
     uiState: ProductCatalogScreenViewModel.State,
     onCheckboxClick: (UUID) -> Unit,
     onSearchQuery: (String) -> Unit,
-    onCategoryClick: (ProductCategory) -> Unit
+    onCategoryClick: (ProductCategory) -> Unit,
+    onSelectedItemClick: () -> Unit,
+    onDeleteIconClick: () -> Unit,
+    onEditClick: (UUID) -> Unit,
 ) {
 
     var value by remember { mutableStateOf("") }
@@ -190,7 +213,9 @@ private fun ProductCatalogLayout(
                             IconButton(
                                 modifier = Modifier
                                     .size(UiDim.ICON_SIZE),
-                                onClick = {},
+                                onClick = {
+                                    onSelectedItemClick()
+                                },
                                 colors = IconButtonDefaults.iconButtonColors(
                                     disabledContainerColor = Color.White,
                                     disabledContentColor = Color.White
@@ -199,7 +224,7 @@ private fun ProductCatalogLayout(
                                 Icon(
                                     modifier = Modifier,
                                     imageVector = Icons.Default.PlaylistAddCheckCircle,
-                                    contentDescription = "Refresh logo",
+                                    contentDescription = "Selected icon",
                                     tint = Color(0xff4B5563)
                                 )
 
@@ -221,7 +246,9 @@ private fun ProductCatalogLayout(
                     IconButton(
                         modifier = Modifier
                             .size(32.dp),
-                        onClick = {}
+                        onClick = {
+                            onDeleteIconClick.invoke()
+                        }
                     ) {
                         Icon(
                             imageVector = Icons.Default.Delete,
@@ -276,7 +303,8 @@ private fun ProductCatalogLayout(
             )
             ProductCatalogItem(
                 uiState = uiState,
-                onCheckboxClick = onCheckboxClick
+                onCheckboxClick = onCheckboxClick,
+                onEditClick = onEditClick
             )
         }
     }
@@ -337,6 +365,7 @@ private fun CategoryRow(
 private fun ProductCatalogItem(
     uiState: ProductCatalogScreenViewModel.State,
     onCheckboxClick: (UUID) -> Unit,
+    onEditClick: (UUID) -> Unit,
 ) {
     LazyColumn {
         items(items = uiState.items) { item ->
@@ -376,7 +405,26 @@ private fun ProductCatalogItem(
                         color = Color(0xff111827)
                     )
                 }
-                Box {
+                Row(
+
+                ) {
+                    Icon(
+                        modifier = Modifier
+                            .padding(horizontal = UiDim.PADDING_LARGE)
+                            .clickable(
+                                true,
+                                onClick = {
+                                    onEditClick.invoke(
+                                        item.productId
+                                    )
+                                }
+                            ),
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit",
+                        tint = Color.Unspecified
+                    )
+
+
                     Icon(
                         modifier = Modifier
                             .padding(horizontal = UiDim.PADDING_LARGE),
@@ -401,7 +449,10 @@ fun ProductCatalogScreenPreview() {
         uiState = ProductCatalogScreenViewModel.State(),
         onCheckboxClick = { _ -> },
         onSearchQuery = {},
-        onCategoryClick = {}
+        onCategoryClick = {},
+        onSelectedItemClick = {},
+        onDeleteIconClick = {},
+        onEditClick = {},
     )
 }
 
@@ -429,7 +480,8 @@ fun ProductCatalogItemPreview() {
         uiState = ProductCatalogScreenViewModel.State(
             allProducts = sampleProducts
         ),
-        onCheckboxClick = { _ -> }
+        onCheckboxClick = { _ -> },
+        onEditClick = { _ -> }
     )
 }
 

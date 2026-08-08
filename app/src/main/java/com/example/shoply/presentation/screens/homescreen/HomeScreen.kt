@@ -42,10 +42,9 @@ import coil.compose.AsyncImage
 import com.example.shoply.domain.model.ProductList
 import com.example.shoply.domain.model.Role
 import com.example.shoply.domain.model.User
-import com.example.shoply.domain.usecase.product.Test
 import com.example.shoply.presentation.components.dialogs.DialogLayout
 import com.example.shoply.presentation.components.dialogs.DialogState
-import com.example.shoply.presentation.components.dialogs.toDialogInputState
+import com.example.shoply.presentation.components.dialogs.dialogState
 import com.example.shoply.presentation.components.snackbar.SnackbarManager
 import com.example.shoply.presentation.utils.UiDim
 import com.myapp.shoply.R
@@ -60,8 +59,8 @@ fun HomeScreen(
     onListClick: (UUID) -> Unit
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
-    val dialogState = uiState.activeDialog.toDialogInputState(
-        uiState = DialogState.InputDialog(
+    val dialogState = uiState.activeDialog.dialogState(
+        dialogStateInputDialog = DialogState.InputDialog(
             title = "Create new shopping list",
             message = "Enter the name of the new shopping list",
             placeholderFirstInput = "Shopping list name",
@@ -259,8 +258,7 @@ private fun CardListScreen(
             Box(
                 modifier = Modifier
                     .background(
-                        if (productList.isComplete)
-                            Color(0xFFFABB02) else Color(0xff4ADE80),
+                        if (productList.isComplete) Color(0xff4ADE80) else Color(0xFFFABB02),
                         shape = RoundedCornerShape(30.dp)
                     )
             ) {
@@ -268,9 +266,9 @@ private fun CardListScreen(
                     modifier = Modifier
                         .padding(UiDim.PADDING_SMALL),
                     text = if (productList.isComplete) {
-                        "Active"
-                    } else {
                         "Completed"
+                    } else {
+                        "Active"
                     },
                     color = Color.White,
                     fontSize = 12.sp,
@@ -355,7 +353,7 @@ private fun MembersImageList(
 fun HomeScreenPreview() {
     HomeScreenLayout(
         uiState = HomeScreenViewModel.State(
-            shopList = Test().productList
+            shopList = HomeScreenPreviewData().productList
         ),
         onDeleteIconClick = {},
         onListClick = {}
@@ -368,7 +366,7 @@ fun HomeContentScreenPreview() {
     HomeContentScreen(
         modifier = Modifier,
         uiState = HomeScreenViewModel.State(
-            shopList = Test().productList
+            shopList = HomeScreenPreviewData().productList
         ),
         onDeleteIconClick = {},
         onListClick = {}
@@ -380,7 +378,7 @@ fun HomeContentScreenPreview() {
 fun CardListScreenPreview() {
     CardListScreen(
         modifier = Modifier,
-        productList = Test().productList.first(),
+        productList = HomeScreenPreviewData().productList.first(),
         onDeleteIconClick = {},
         onListClick = {}
     )

@@ -18,7 +18,7 @@ data class ProductListDestination(
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.productListScreen(
     onFabConfigChange: (FabConfig) -> Unit,
-    navigateToProductCatalog: () -> Unit,
+    navigateToProductCatalog: (UUID) -> Unit,
 ) {
     composable<ProductListDestination> { backStackEntry ->
         val destination = backStackEntry.toRoute<ProductListDestination>()

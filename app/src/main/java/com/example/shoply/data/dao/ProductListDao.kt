@@ -13,10 +13,6 @@ import java.util.UUID
 @Dao
 interface ProductListDao {
 
-    // ========================================
-    // Queries
-    // ========================================
-
     @Query("SELECT * FROM product_lists")
     fun getAllProductLists(): Flow<List<ProductListEntity>>
 
@@ -32,9 +28,6 @@ interface ProductListDao {
     @Query("SELECT COUNT(*) FROM product_lists")
     suspend fun getProductListCount(): Int
 
-    // ========================================
-    // Insert/Update/Delete
-    // ========================================
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertProductList(productList: ProductListEntity)

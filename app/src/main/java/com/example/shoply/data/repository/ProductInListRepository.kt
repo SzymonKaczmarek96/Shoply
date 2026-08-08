@@ -10,6 +10,16 @@ interface ProductInListRepository {
 
     suspend fun addProductInList(productInList: ProductInList)
 
-    suspend fun deleteProductInList(listId: UUID, productInList: ProductInList)
+    suspend fun addProductsInList(productsInList: List<ProductInList>)
+
+    suspend fun deleteProductInList(productInList: ProductInList)
+
+    suspend fun updateProductInList(productInList: ProductInList)
+
+    suspend fun deleteProductsInList(productsInList: List<ProductInList>)
+
+    suspend fun findContainingProducts(listId: UUID, letter: String): List<ProductInList>
+
+    suspend fun isExistsProductInList(listId: UUID, productName: String): Boolean
 
 }

@@ -10,13 +10,13 @@ import java.util.UUID
 data class ProductEntity(
     @PrimaryKey val productId: UUID = UUID.randomUUID(),
     val name: String,
-    val category: ProductCategory,
+    val category: String,
 )
 
 fun ProductEntity.toDomain(): Product {
     return Product(
         productId = this.productId,
         name = this.name,
-        category = this.category,
+        category = ProductCategory.valueOf(this.category),
     )
 }
