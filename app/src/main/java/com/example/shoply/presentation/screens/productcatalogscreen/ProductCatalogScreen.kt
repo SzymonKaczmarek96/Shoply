@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.PlaylistAddCheckCircle
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
@@ -32,6 +33,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,6 +49,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.shoply.domain.model.Product
 import com.example.shoply.domain.model.ProductCategory
+import com.example.shoply.presentation.components.AppDropdownItem
+import com.example.shoply.presentation.components.DropdownMenuConfig
 import com.example.shoply.presentation.components.dialogs.DialogLayout
 import com.example.shoply.presentation.components.dialogs.DialogState
 import com.example.shoply.presentation.components.dialogs.dialogState
@@ -64,6 +68,7 @@ fun ProductCatalogScreen(
     onFabConfigChange: (FabConfig) -> Unit,
     onNavigateBack: () -> Unit,
     showSpecialIcon: Boolean,
+    onMenuConfigChange: (DropdownMenuConfig) -> Unit,
     listId: UUID?,
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -82,6 +87,43 @@ fun ProductCatalogScreen(
         )
     )
 
+    val updateCategoryDialog = uiState.activeDialog.dialogState(
+        dialogStateInputDialog = DialogState.InputDialog(
+            title = "Update Category",
+            message = "Choose a new category for the selected products",
+            confirmButtonText = "Update",
+            dismissButtonText = "Cancel",
+            selectedCategory = uiState.selectedCategoryFromDialog,
+            productCategories = uiState.productCategories
+        )
+    )
+
+    DisposableEffect(Unit) {
+        onMenuConfigChange(
+            DropdownMenuConfig(
+                dropdownItems = listOf(
+                    AppDropdownItem(
+                        text = "Add to Favorites",
+                        onClick = {
+                            viewModel.changeCategoryToFavorite()
+                        },
+                        icon = Icons.Default.Favorite
+                    ),
+                    AppDropdownItem(
+                        text = "Change Category",
+                        onClick = {
+                            viewModel.showUpdateCategoryDialog()
+                        },
+                        icon = Icons.Default.Edit
+                    )
+                )
+            )
+        )
+        onDispose {
+            onMenuConfigChange(DropdownMenuConfig())
+        }
+    }
+
     LaunchedEffect(Unit) {
         onFabConfigChange(
             FabConfig(
@@ -92,6 +134,9 @@ fun ProductCatalogScreen(
                 }
             )
         )
+    }
+
+    LaunchedEffect(showSpecialIcon) {
         viewModel.setIsLastScreen(showSpecialIcon)
     }
 
@@ -134,13 +179,17 @@ fun ProductCatalogScreen(
     )
 
     DialogLayout(
-        dialogState = inputDialogState,
+        dialogState = if (uiState.isCategoryUpdate) updateCategoryDialog else inputDialogState,
         modifier = Modifier,
         onDismiss = { viewModel.dismissDialog() },
         onValueChange = { viewModel.onDialogInputChange(it) },
         onCategorySelected = viewModel::onSelectedProductCategory,
-        onConfirm = { viewModel.confirmInput() }
-
+        onConfirm = {
+            if (uiState.isCategoryUpdate)
+                viewModel.changeCategoryForSelectedCategory()
+            else
+                viewModel.confirmInput()
+        }
     )
 }
 

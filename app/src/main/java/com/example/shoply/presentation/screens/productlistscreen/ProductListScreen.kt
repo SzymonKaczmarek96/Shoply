@@ -55,7 +55,6 @@ import com.example.shoply.presentation.utils.UiDim
 import org.koin.androidx.compose.koinViewModel
 import java.util.UUID
 
-// you need to clarify topic with add product in list
 @Composable
 @ExperimentalMaterial3Api
 fun ProductListScreen(
@@ -90,6 +89,7 @@ fun ProductListScreen(
             dismissButtonText = "No",
         )
     )
+
     LaunchedEffect(Unit) {
         onFabClickChange.invoke(
             FabConfig(
@@ -101,6 +101,7 @@ fun ProductListScreen(
             )
         )
     }
+
     LaunchedEffect(listId) {
         viewModel.updateListId(listId)
     }

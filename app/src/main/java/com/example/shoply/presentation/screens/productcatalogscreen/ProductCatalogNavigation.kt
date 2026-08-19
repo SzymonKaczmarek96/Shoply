@@ -7,6 +7,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.example.shoply.presentation.components.DropdownMenuConfig
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -19,7 +20,8 @@ data class ProductCatalogDestination(
 fun NavGraphBuilder.productCatalogScreen(
     onFabConfigChange: (FabConfig) -> Unit,
     onNavigateBack: () -> Unit,
-    showSpecialIcon: Boolean
+    showSpecialIcon: Boolean,
+    onMenuConfigChange: (DropdownMenuConfig) -> Unit
 ) {
     composable<ProductCatalogDestination> { backStep ->
         val destination = backStep.toRoute<ProductCatalogDestination>()
@@ -29,7 +31,8 @@ fun NavGraphBuilder.productCatalogScreen(
             onFabConfigChange = onFabConfigChange,
             showSpecialIcon = showSpecialIcon,
             onNavigateBack = onNavigateBack,
-            listId = listId
+            listId = listId,
+            onMenuConfigChange = onMenuConfigChange
         )
     }
 }

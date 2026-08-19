@@ -8,6 +8,7 @@ import com.example.shoply.data.repository.ProductListRepository
 import com.example.shoply.data.repository.ProductListRepositoryImpl
 import com.example.shoply.data.repository.ProductRepository
 import com.example.shoply.data.repository.ProductRepositoryImpl
+import com.example.shoply.domain.usecase.product.ChangeProductsCategoryUseCase
 import com.example.shoply.domain.usecase.product.DeleteProductsUseCase
 import com.example.shoply.domain.usecase.product.GetOrCreateProductUseCase
 import com.example.shoply.domain.usecase.product.GetProductUseCase
@@ -47,7 +48,8 @@ val appModule = module {
             addProductsInListUseCase = get(),
             getProductInList = get(),
             deleteProductUseCase = get(),
-            updateProductUseCase = get()
+            updateProductUseCase = get(),
+            changeProductsCategoryUseCase = get(),
         )
     }
     viewModel {
@@ -94,7 +96,7 @@ val appModule = module {
     factory { FindProductsInListUseCase(get()) }
     factory { ValidateProductNameUseCase(get()) }
     factory { UpdateProductUseCase(get(), get()) }
-
+    factory { ChangeProductsCategoryUseCase(get()) }
 }
 
 //db

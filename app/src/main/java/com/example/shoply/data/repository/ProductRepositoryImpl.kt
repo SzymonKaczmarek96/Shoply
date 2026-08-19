@@ -45,5 +45,14 @@ class ProductRepositoryImpl(
         return productDao.existsByName(name)
     }
 
+    override suspend fun updateCategories(products: List<Product>) {
+        products.forEach { product ->
+            productDao.updateProductCategory(
+                category = product.category,
+                productId = product.productId
+            )
+        }
+    }
+
 
 }

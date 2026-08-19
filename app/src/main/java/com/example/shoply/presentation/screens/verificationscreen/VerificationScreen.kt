@@ -36,6 +36,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.shoply.presentation.components.DropdownMenuConfig
 import com.example.shoply.presentation.components.ShoplyTopBar
 import com.example.shoply.presentation.utils.UiDim
 import com.myapp.shoply.R
@@ -71,7 +72,8 @@ private fun VerificationScreenLayout(
                 modifier = Modifier,
                 title = "Shoply",
                 onBackButtonClick = onBackClick,
-                isLoginScreen = true
+                isLoginScreen = true,
+                dropdownMenuItems = DropdownMenuConfig()
             )
         },
     ) { padding ->

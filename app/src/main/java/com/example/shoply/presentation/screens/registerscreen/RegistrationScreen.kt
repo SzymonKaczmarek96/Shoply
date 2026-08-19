@@ -25,6 +25,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.shoply.presentation.components.DropdownMenuConfig
 import com.example.shoply.presentation.components.ShoplyTopBar
 import com.example.shoply.presentation.utils.UiDim
 
@@ -64,7 +65,8 @@ private fun RegistrationScreenLayout(
                 modifier = Modifier,
                 title = "Shoply",
                 onBackButtonClick = onBackButtonClick,
-                isLoginScreen = true
+                isLoginScreen = true,
+                dropdownMenuItems = DropdownMenuConfig()
             )
         },
         content = { innerPadding ->

@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import com.example.shoply.data.model.ProductEntity
+import com.example.shoply.domain.model.ProductCategory
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
@@ -49,4 +50,7 @@ interface ProductDao {
 
     @Query("SELECT EXISTS(SELECT 1 FROM products WHERE LOWER(name) = LOWER(:name))")
     suspend fun existsByName(name: String): Boolean
+
+    @Query("UPDATE products SET category = :category WHERE productId = :productId")
+    suspend fun updateProductCategory(category: ProductCategory, productId: UUID)
 }

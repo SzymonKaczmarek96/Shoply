@@ -6,6 +6,7 @@ import com.example.shoply.domain.model.Product
 import com.example.shoply.domain.model.ProductCategory
 import com.example.shoply.domain.model.ProductInList
 import com.example.shoply.domain.usecase.UseCaseResult
+import com.example.shoply.domain.usecase.product.ChangeProductsCategoryUseCase
 import com.example.shoply.domain.usecase.product.DeleteProductsUseCase
 import com.example.shoply.domain.usecase.product.GetProductUseCase
 import com.example.shoply.domain.usecase.product.InsertProductUseCase
@@ -42,6 +43,7 @@ class ProductCatalogViewModelTest {
     private val getProductInList: GetProductInListUseCase = mockk()
     private val deleteProductUseCase: DeleteProductsUseCase = mockk()
     private val updateProductUseCase: UpdateProductUseCase = mockk()
+    private val changeProductsCategoryUseCase: ChangeProductsCategoryUseCase = mockk()
 
     private fun createViewModel(state: ProductCatalogScreenViewModel.State): ProductCatalogScreenViewModel {
         return ProductCatalogScreenViewModel(
@@ -51,6 +53,7 @@ class ProductCatalogViewModelTest {
             getProductInList = getProductInList,
             deleteProductUseCase = deleteProductUseCase,
             updateProductUseCase = updateProductUseCase,
+            changeProductsCategoryUseCase = changeProductsCategoryUseCase,
             idDispatcher = mainDispatcherRule.testDispatcher,
             stateInit = state
         )
@@ -735,6 +738,144 @@ class ProductCatalogViewModelTest {
         val state = viewModel.state.value
         assertEquals(true, state.isSuccess)
         coVerify(exactly = 1) { updateProductUseCase.invoke(any()) }
+    }
+
+    @Test
+    fun shouldChangeCategoryOnFavorites() = runTest {
+        //given
+        val viewModel = createViewModel(
+            ProductCatalogScreenViewModel.State(
+                allProducts = testProducts,
+                selectedIds = setOf(testProducts[0].productId, testProducts[1].productId)
+            )
+        )
+        coEvery { changeProductsCategoryUseCase.invoke(any()) } returns UseCaseResult.Success(Unit)
+        coEvery { getProductUseCase.invoke() } returns flowOf(testProducts.map { it.copy(category = ProductCategory.FAVORITE) })
+
+        //when
+        viewModel.changeCategoryToFavorite()
+        advanceUntilIdle()
+
+        //then
+        val state = viewModel.state.value
+        assertEquals(true, state.isSuccess)
+        assertEquals(state.userMessage, "Category updated successfully")
+        assertEquals(state.allProducts[0].category, ProductCategory.FAVORITE)
+        assertEquals(state.allProducts[1].category, ProductCategory.FAVORITE)
+    }
+
+    @Test
+    fun shouldChangeCategoryOnElectronics() = runTest {
+        //given
+        val viewModel = createViewModel(
+            ProductCatalogScreenViewModel.State(
+                allProducts = testProducts,
+                selectedIds = setOf(testProducts[0].productId, testProducts[1].productId),
+                selectedCategoryFromDialog = ProductCategory.ELECTRONICS
+            )
+        )
+        coEvery { changeProductsCategoryUseCase.invoke(any()) } returns UseCaseResult.Success(Unit)
+        coEvery { getProductUseCase.invoke() } returns flowOf(testProducts.map { it.copy(category = ProductCategory.ELECTRONICS) })
+
+        //when
+        viewModel.changeCategoryForSelectedCategory()
+        advanceUntilIdle()
+
+        //then
+        val state = viewModel.state.value
+        assertEquals(true, state.isSuccess)
+        assertEquals(state.userMessage, "Category updated successfully")
+        assertEquals(state.allProducts[0].category, ProductCategory.ELECTRONICS)
+        assertEquals(state.allProducts[1].category, ProductCategory.ELECTRONICS)
+
+    }
+
+    @Test
+    fun shouldThrowErrorMessageWhenChangingCategoryOnElectronics() = runTest {
+        //given
+        val viewModel = createViewModel(
+            ProductCatalogScreenViewModel.State(
+                allProducts = testProducts,
+                selectedIds = setOf(testProducts[0].productId, testProducts[1].productId),
+                selectedCategoryFromDialog = ProductCategory.ELECTRONICS
+            )
+        )
+        coEvery { changeProductsCategoryUseCase.invoke(any()) } returns UseCaseResult.Error(
+            error = IOException(
+                "Failed to change category"
+            )
+        )
+
+        //when
+        viewModel.changeCategoryForSelectedCategory()
+        advanceUntilIdle()
+
+        //then
+        val state = viewModel.state.value
+        assertEquals(true, state.isError)
+        assertEquals(state.userMessage, "Failed to change category")
+        assertEquals(state.allProducts[0].category, ProductCategory.GROCERY)
+        assertEquals(state.allProducts[1].category, ProductCategory.ELECTRONICS)
+    }
+
+    @Test
+    fun shouldIsLoadingWhenChangingCategoryOnElectronics() = runTest {
+        //given
+        val viewModel = createViewModel(
+            ProductCatalogScreenViewModel.State(
+                allProducts = testProducts,
+                selectedIds = setOf(testProducts[0].productId, testProducts[1].productId),
+                selectedCategoryFromDialog = ProductCategory.ELECTRONICS
+            )
+        )
+        coEvery { changeProductsCategoryUseCase.invoke(any()) } returns UseCaseResult.Loading
+
+        //when
+        viewModel.changeCategoryForSelectedCategory()
+        advanceUntilIdle()
+
+        //then
+        val state = viewModel.state.value
+        assertEquals(true, state.isLoading)
+        assertEquals(state.allProducts[0].category, ProductCategory.GROCERY)
+        assertEquals(state.allProducts[1].category, ProductCategory.ELECTRONICS)
+    }
+
+    @Test
+    fun shouldUpdateCategoryDialog() {
+        //given
+        val viewModel = createViewModel(
+            ProductCatalogScreenViewModel.State(
+                selectedIds = setOf(testProducts[0].productId, testProducts[1].productId),
+                isCategoryUpdate = false
+            )
+        )
+
+        //when
+        viewModel.setCategoryUpdate(true)
+
+        //then
+        val state = viewModel.state.value
+        assertEquals(true, state.isCategoryUpdate)
+    }
+
+    @Test
+    fun shouldShowUpdateCategoryDialog() {
+        //given
+        val viewModel = createViewModel(
+            ProductCatalogScreenViewModel.State(
+                selectedIds = setOf(testProducts[0].productId, testProducts[1].productId),
+                isCategoryUpdate = false
+            )
+        )
+
+        //when
+        viewModel.showUpdateCategoryDialog()
+
+        //then
+        val state = viewModel.state.value
+        assertEquals(true, state.isCategoryUpdate)
+        assertEquals(UiDialog.INPUT_DIALOG, state.activeDialog)
     }
 
     private val testProduct = Product(

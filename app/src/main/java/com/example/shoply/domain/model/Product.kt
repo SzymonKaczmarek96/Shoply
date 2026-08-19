@@ -25,6 +25,7 @@ enum class ProductCategory() {
     HOUSEHOLD,
     TOYS,
     SPORTS,
+    FAVORITE,
     OTHER;
 }
 

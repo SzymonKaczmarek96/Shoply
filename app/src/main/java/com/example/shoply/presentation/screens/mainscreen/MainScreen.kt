@@ -14,6 +14,7 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.shoply.presentation.components.DropdownMenuConfig
 import com.example.shoply.presentation.components.ShoplyBottomBar
 import com.example.shoply.presentation.components.ShoplyFab
 import com.example.shoply.presentation.components.ShoplyTopBar
@@ -46,7 +47,10 @@ fun MainScreen(
         navBackStackEntry?.destination?.hasRoute<SettingsDestination>() == true
 
     var fabConfig by remember { mutableStateOf(FabConfig()) }
+    var dropdownMenuConfig by remember { mutableStateOf(DropdownMenuConfig()) }
+
     val snackbarHost = remember { SnackbarHostState() }
+
 
     Scaffold(
         snackbarHost = {
@@ -62,7 +66,7 @@ fun MainScreen(
                 isHomeScreen = isHomeScreen,
                 onBackButtonClick = { navController.popBackStack() },
                 onLogoutClick = { onLogoutClick() },
-                onSideMenuClick = {}
+                dropdownMenuItems = dropdownMenuConfig
             )
         },
         floatingActionButton = {
@@ -104,7 +108,8 @@ fun MainScreen(
                 showSpecialIcon = cameFromProductList,
                 onNavigateBack = {
                     navController.popBackStack()
-                }
+                },
+                onMenuConfigChange = { dropdownMenuConfig = it },
             )
             productListScreen(
                 onFabConfigChange = { fabConfig = it },
@@ -118,6 +123,7 @@ fun MainScreen(
         }
     }
 }
+
 
 data class FabConfig(
     val visible: Boolean = false,

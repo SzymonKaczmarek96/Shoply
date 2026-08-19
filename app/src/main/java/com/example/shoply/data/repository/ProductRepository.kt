@@ -15,4 +15,6 @@ interface ProductRepository {
     suspend fun getOrCreateProduct(product: Product): Product
 
     suspend fun existsByName(name: String): Boolean
+
+    suspend fun updateCategories(products: List<Product>)
 }

@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.SportsSoccer
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Toys
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.shoply.domain.model.ProductCategory
@@ -23,6 +24,7 @@ object ProductCategoryIconMapper {
             ProductCategory.TOYS -> Icons.Filled.Toys
             ProductCategory.SPORTS -> Icons.Filled.SportsSoccer
             ProductCategory.OTHER -> Icons.Filled.Category
+            ProductCategory.FAVORITE -> Icons.Filled.Star
             ProductCategory.ALL -> Icons.Filled.GridView
         }
 }

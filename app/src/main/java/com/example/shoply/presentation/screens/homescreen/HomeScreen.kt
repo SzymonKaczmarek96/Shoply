@@ -78,7 +78,6 @@ fun HomeScreen(
         onListClick = { listId ->
             onListClick.invoke(listId)
         }
-
     )
 
     LaunchedEffect(Unit) {

@@ -130,33 +130,35 @@ private fun InputDialogContent(
                 Text(
                     text = state.message
                 )
-                OutlinedTextField(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = UiDim.PADDING_MEDIUM)
-                        .background(
-                            color = Color(0xFFF9FAFB),
-                            shape = RoundedCornerShape(12.dp)
+                if (state.placeholderFirstInput?.isNotEmpty() == true) {
+                    OutlinedTextField(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = UiDim.PADDING_MEDIUM)
+                            .background(
+                                color = Color(0xFFF9FAFB),
+                                shape = RoundedCornerShape(12.dp)
+                            ),
+                        value = state.firstInputValue,
+                        maxLines = 1,
+                        onValueChange = { onValueChange.invoke(it) },
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
                         ),
-                    value = state.firstInputValue,
-                    maxLines = 1,
-                    onValueChange = { onValueChange.invoke(it) },
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    ),
-                    placeholder = {
-                        Text(state.placeholderFirstInput ?: "")
-                    }
-                )
+                        placeholder = {
+                            Text(state.placeholderFirstInput ?: "")
+                        }
+                    )
+                }
                 Spacer(modifier = Modifier.padding(UiDim.PADDING_MEDIUM))
 
 
                 if (state.productCategories.isNotEmpty()) {
                     Text(
-                        text = "Add category: "
+                        text = "Category: "
                     )
                     DropdownMenuProductCategories(
                         categories = state.productCategories,

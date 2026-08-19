@@ -6,6 +6,7 @@ import com.example.shoply.domain.model.Product
 import com.example.shoply.domain.model.ProductCategory
 import com.example.shoply.domain.model.ProductInList
 import com.example.shoply.domain.usecase.UseCaseResult
+import com.example.shoply.domain.usecase.product.ChangeProductsCategoryUseCase
 import com.example.shoply.domain.usecase.product.DeleteProductsUseCase
 import com.example.shoply.domain.usecase.product.GetProductUseCase
 import com.example.shoply.domain.usecase.product.InsertProductUseCase
@@ -30,6 +31,7 @@ class ProductCatalogScreenViewModel(
     private val getProductInList: GetProductInListUseCase,
     private val deleteProductUseCase: DeleteProductsUseCase,
     private val updateProductUseCase: UpdateProductUseCase,
+    private val changeProductsCategoryUseCase: ChangeProductsCategoryUseCase,
     private val idDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val stateInit: State = State()
 ) : ViewModel() {
@@ -52,6 +54,7 @@ class ProductCatalogScreenViewModel(
         val isLastScreenProductListScreen: Boolean? = false,
         val transferProductList: List<ProductInList>? = emptyList(),
         val isUpdateDialog: Boolean = false,
+        val isCategoryUpdate: Boolean = false,
         val isError: Boolean = false,
         val isSuccess: Boolean = false,
         val isLoading: Boolean = false,
@@ -221,6 +224,47 @@ class ProductCatalogScreenViewModel(
         }
     }
 
+    fun changeCategoryToFavorite() {
+        val selectedProducts = _state.value.allProducts.filter {
+            _state.value.selectedIds.contains(it.productId)
+        }
+
+        val productsForUpdate =
+            selectedProducts.map { it.copy(category = ProductCategory.FAVORITE) }
+        viewModelScope.launch(idDispatcher) {
+            val result = changeProductsCategoryUseCase.invoke(productsForUpdate)
+            changeProductsCategoryUseCaseHandler(result)
+        }
+    }
+
+    fun showUpdateCategoryDialog() {
+        if (hasAnySelectedItems()) {
+            setCategoryUpdate(true)
+            onCreateDialog()
+        }
+    }
+
+    fun changeCategoryForSelectedCategory() {
+        val selectedProducts = _state.value.allProducts.filter {
+            _state.value.selectedIds.contains(it.productId)
+        }
+        val productsForUpdate =
+            selectedProducts.map { it.copy(category = _state.value.selectedCategoryFromDialog) }
+        viewModelScope.launch(idDispatcher) {
+            val result = changeProductsCategoryUseCase.invoke(productsForUpdate)
+            changeProductsCategoryUseCaseHandler(result)
+        }
+        dismissDialog()
+    }
+
+    fun setCategoryUpdate(isCategoryUpdate: Boolean) {
+        _state.update {
+            it.copy(isCategoryUpdate = isCategoryUpdate)
+        }
+    }
+
+    private fun hasAnySelectedItems() = _state.value.selectedIds.isNotEmpty()
+
     // init
     init {
         viewModelScope.launch {
@@ -240,6 +284,30 @@ class ProductCatalogScreenViewModel(
     }
 
     // private
+    private fun changeProductsCategoryUseCaseHandler(
+        result: UseCaseResult<Unit, Throwable>
+    ) {
+        when (result) {
+            is UseCaseResult.Error -> {
+                _state.update {
+                    it.error(result.error.message ?: "Something went wrong")
+                }
+            }
+
+            is UseCaseResult.Success -> {
+                _state.update {
+                    it.success(
+                        message = "Category updated successfully"
+                    )
+                }
+            }
+
+            is UseCaseResult.Loading -> {
+                _state.update { it.loading() }
+            }
+        }
+    }
+
     private fun updateProduct() {
         viewModelScope.launch(idDispatcher) {
             val product =
