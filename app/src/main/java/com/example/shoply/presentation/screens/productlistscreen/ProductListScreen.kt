@@ -472,18 +472,4 @@ fun ProductCatalogItemPreview() {
         onCheckboxClick = { _, _ -> },
         onDeleteIconCLick = {}
     )
-    val sampleProducts = listOf(
-        Product(
-            name = "Bread",
-            category = ProductCategory.HOUSEHOLD
-        ),
-        Product(
-            name = "Milk",
-            category = ProductCategory.SPORTS
-        ),
-        Product(
-            name = "Apples",
-            category = ProductCategory.OTHER,
-        ),
-    )
 }

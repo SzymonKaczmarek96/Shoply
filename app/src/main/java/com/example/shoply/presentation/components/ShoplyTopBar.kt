@@ -40,7 +40,7 @@ fun ShoplyTopBar(
     onLogoutClick: () -> Unit = {},
     isLoginScreen: Boolean = false,
 ) {
-    var expanded = remember { mutableStateOf(false) }
+    val expanded = remember { mutableStateOf(false) }
 
     CenterAlignedTopAppBar(
         title = {

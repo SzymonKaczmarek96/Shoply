@@ -149,7 +149,7 @@ private fun InputDialogContent(
                             unfocusedIndicatorColor = Color.Transparent
                         ),
                         placeholder = {
-                            Text(state.placeholderFirstInput ?: "")
+                            Text(state.placeholderFirstInput)
                         }
                     )
                 }
