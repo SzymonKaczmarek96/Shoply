@@ -15,6 +15,7 @@ import com.example.shoply.domain.usecase.productinlist.GetProductInListUseCase
 import com.example.shoply.domain.usecase.productinlist.UpdateProductInListUseCase
 import com.example.shoply.domain.usecase.productlist.GetProductListsWithDetailsUseCase
 import com.example.shoply.presentation.components.dialogs.UiDialog
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -22,10 +23,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
+import kotlin.time.Duration.Companion.milliseconds
 
 class ProductListScreenViewModel(
     private val getOrCreateProductUseCase: GetOrCreateProductUseCase,
@@ -36,12 +39,14 @@ class ProductListScreenViewModel(
     private val getProductListsWithDetailsUseCase: GetProductListsWithDetailsUseCase,
     private val deleteProductsInListUseCase: DeleteProductsInListUseCase,
     private val findProductsInListUseCase: FindProductsInListUseCase,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val stateInit: State = State()
 ) : ViewModel() {
 
     private var observeJob: Job? = null
     private var searchJob: Job? = null
 
-    private val _state = MutableStateFlow(State())
+    private val _state = MutableStateFlow(stateInit)
     val state: StateFlow<State> = _state.asStateFlow()
 
     data class State(
@@ -60,7 +65,10 @@ class ProductListScreenViewModel(
         val selectedCategoryFromDialog: ProductCategory? = null,
         val userMessage: String? = null,
         val isInputDialogState: Boolean = true,
-        val foundedProductList: List<ProductInList>? = emptyList()
+        val foundedProductList: List<ProductInList>? = emptyList(),
+        val isLoading: Boolean = false,
+        val isError: Boolean = false,
+        val isSuccess: Boolean = false,
     ) {
         val groupedProduct: Map<ProductCategory, List<ProductInList>>? =
             if (foundedProductList?.isEmpty() == true) allProducts?.groupBy { it.product.category }
@@ -79,7 +87,7 @@ class ProductListScreenViewModel(
 
     // BUSINESS LOGIC
     fun updateListId(listId: UUID?) {
-        if (_state.value.listId == listId) return
+        if (listId == null || _state.value.listId == listId) return
 
         _state.update { currentState ->
             currentState.copy(
@@ -90,14 +98,28 @@ class ProductListScreenViewModel(
         observeProducts(listId)
     }
 
-    fun updateProductInList(productId: UUID) {
+    fun updatePurchasedStatusProductInList(productId: UUID) {
         val foundedProduct = _state.value.allProducts?.find { it.id == productId }
         if (foundedProduct == null) return
         val updatedProduct = foundedProduct.copy(isPurchased = !foundedProduct.isPurchased)
-        viewModelScope.launch {
-            updateProductInListUseCase.invoke(updatedProduct)
-            getProductListsWithDetailsUseCase.invoke().collect { productList ->
-                _state.value = _state.value.copy(allProducts = productList.first().products)
+
+        viewModelScope.launch(dispatcher) {
+            when (val result = updateProductInListUseCase.invoke(updatedProduct)) {
+                is UseCaseResult.Success -> {
+                    val productList = getProductListsWithDetailsUseCase.invoke().first()
+                    _state.update { currentState ->
+                        currentState.copy(allProducts = productList.first().products).success()
+                    }
+
+                }
+
+                is UseCaseResult.Error -> _state.update {
+                    it.error(
+                        result.error.message ?: "Something went wrong"
+                    )
+                }
+
+                UseCaseResult.Loading -> _state.update { it.loading() }
             }
         }
     }
@@ -105,7 +127,7 @@ class ProductListScreenViewModel(
     fun deleteProductInList(productId: UUID) {
         val foundedProduct = _state.value.allProducts?.find { it.id == productId }
         if (foundedProduct == null) return
-        viewModelScope.launch {
+        viewModelScope.launch(dispatcher) {
             deleteProductInListUseCase.invoke(foundedProduct)
         }
         onMessageProductDeleted()
@@ -113,7 +135,7 @@ class ProductListScreenViewModel(
 
     fun deletePurchasedProducts() {
         val purchasedProducts = _state.value.allProducts?.filter { it.isPurchased }
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(dispatcher) {
             deleteProductsInListUseCase.invoke(purchasedProducts ?: emptyList())
         }
         onMessageProductDeleted()
@@ -123,7 +145,7 @@ class ProductListScreenViewModel(
     private fun observeProducts(listId: UUID?) {
         if (listId == null) return
         observeJob?.cancel()
-        observeJob = viewModelScope.launch {
+        observeJob = viewModelScope.launch(dispatcher) {
             getProductInList(listId)
                 .scan(emptyList<ProductInList>()) { previousProduct, newProduct ->
 
@@ -144,7 +166,7 @@ class ProductListScreenViewModel(
     fun addProductInList(
         productListId: UUID,
     ) {
-        viewModelScope.launch {
+        viewModelScope.launch(dispatcher) {
             val product = getOrCreateProductUseCase.invoke(
                 Product(
                     name = _state.value.dialogInput ?: "ALL",
@@ -180,8 +202,8 @@ class ProductListScreenViewModel(
 
     fun findProductByProductName(productName: String) {
         searchJob?.cancel()
-        searchJob = viewModelScope.launch(Dispatchers.IO) {
-            delay(300)
+        searchJob = viewModelScope.launch(dispatcher) {
+            delay(300.milliseconds)
 
             val listId = _state.value.listId ?: return@launch
             _state.value.listId?.let {
@@ -272,5 +294,25 @@ class ProductListScreenViewModel(
             currentState.copy(userMessage = "Product has been deleted successful")
         }
     }
+
+    private fun State.loading() = copy(
+        isLoading = true,
+        isSuccess = false,
+        isError = false
+    )
+
+    private fun State.success(message: String? = null) = copy(
+        isLoading = false,
+        isSuccess = true,
+        isError = false,
+        userMessage = message
+    )
+
+    private fun State.error(message: String) = copy(
+        isLoading = false,
+        isSuccess = false,
+        isError = true,
+        userMessage = message
+    )
 
 }

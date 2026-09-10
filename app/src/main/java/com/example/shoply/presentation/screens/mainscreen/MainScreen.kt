@@ -73,7 +73,7 @@ fun MainScreen(
             if (fabConfig.visible && fabConfig.onClick != null) {
                 ShoplyFab(
                     modifier = Modifier,
-                    onFabClick = { fabConfig.onClick?.invoke() }
+                    onFabClick = { fabConfig.onClick?.invoke() },
                 )
             }
         },
@@ -123,7 +123,6 @@ fun MainScreen(
         }
     }
 }
-
 
 data class FabConfig(
     val visible: Boolean = false,

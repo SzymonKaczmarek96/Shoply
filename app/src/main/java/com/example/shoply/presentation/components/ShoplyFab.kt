@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ShoplyFab(
     modifier: Modifier,
-    onFabClick: () -> Unit
+    onFabClick: () -> Unit,
 ) {
     FloatingActionButton(
         onClick = onFabClick,
@@ -35,7 +35,7 @@ fun ShoplyFab(
 
 @Preview
 @Composable
-fun FloatingActionButtonPreview() {
+private fun FloatingActionButtonPreview() {
     ShoplyFab(modifier = Modifier, onFabClick = {})
 }
 

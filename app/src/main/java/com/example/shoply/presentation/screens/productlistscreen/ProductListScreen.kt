@@ -125,7 +125,7 @@ fun ProductListScreen(
         modifier = Modifier,
         uiState = uiState,
         onCheckboxClick = { uuid, boolean ->
-            viewModel.updateProductInList(productId = uuid)
+            viewModel.updatePurchasedStatusProductInList(productId = uuid)
         },
         onSearchQuery = {
             viewModel.findProductByProductName(it)

@@ -398,20 +398,20 @@ class ProductCatalogScreenViewModel(
 
     // UseCaseResultHandling
 
-    fun State.loading() = copy(
+    private fun State.loading() = copy(
         isLoading = true,
         isSuccess = false,
         isError = false
     )
 
-    fun State.success(message: String? = null) = copy(
+    private fun State.success(message: String? = null) = copy(
         isLoading = false,
         isSuccess = true,
         isError = false,
         userMessage = message
     )
 
-    fun State.error(message: String) = copy(
+    private fun State.error(message: String) = copy(
         isLoading = false,
         isSuccess = false,
         isError = true,
